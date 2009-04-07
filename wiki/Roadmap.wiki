@@ -2,17 +2,10 @@
 #labels Featured,Phase-Requirements
 
  * Colored Annotation: Specifically telling if a file is Local, or under source control.
-
  * Multi-threaded annotation:  Some people work from home and as such the p4 application can take a while to get back, we don't want those people to be unable to use the plugin, so it must not slow down the IDE.
-
  * Non-Case sensitive multiple workspace auto lookup:  We have a lot of developers, some use C:\projects\workspace1  some use c:\Projects\workSpace2, etc, we dont want to have to worry about case sensitivity and people switch around work spaces a lot, so auto lookup helps to automatically detect which perforce workspace the project is under if any.
-
  * Auto Check out on edit - With confirmation box.
-
  * NO Auto add, we prefer developers to have to manually add new files since we have a lot of generated code it would keep asking us all the time if we want to add a file, and typically we don't, which is why the colored annotation is very important so people know what has not been added.
-
  * Diff command - We diff a lot for code reviews.
-
  * Refresh ability - Lot of programmers, lots of refreshing =)
-
  * Ability to delete connections - People change workspaces a lot, so we need to be able to delete them.
