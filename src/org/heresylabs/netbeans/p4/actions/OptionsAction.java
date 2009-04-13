@@ -14,28 +14,25 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with p4nb.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.heresylabs.netbeans.p4;
+
+package org.heresylabs.netbeans.p4.actions;
+
+import java.awt.event.ActionEvent;
+import javax.swing.AbstractAction;
+import org.netbeans.api.options.OptionsDisplayer;
 
 /**
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
-public class FileStatus {
+public class OptionsAction extends AbstractAction {
 
-    private final String revision;
-    private final int action;
-
-    public FileStatus(String revision, int action) {
-        this.revision = revision;
-        this.action = action;
+    public OptionsAction() {
+        putValue(NAME, "Options");
     }
 
-    public int getAction() {
-        return action;
-    }
-
-    public String getRevision() {
-        return revision;
+    public void actionPerformed(ActionEvent e) {
+        OptionsDisplayer.getDefault().open("VersioningOptionsDialog/Perforce");
     }
 
 }

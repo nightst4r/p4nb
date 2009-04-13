@@ -26,14 +26,12 @@ package org.heresylabs.netbeans.p4.options;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.LayoutStyle.ComponentPlacement;
+import org.jdesktop.layout.LayoutStyle;
 import org.openide.util.NbBundle;
 
 /**
@@ -90,55 +88,55 @@ public class ConnectionPanel extends javax.swing.JPanel {
         jLabel4.setText(NbBundle.getMessage(ConnectionPanel.class, "ConnectionPanel.jLabel4.text")); // NOI18N
         passwordField.setText(NbBundle.getMessage(ConnectionPanel.class, "ConnectionPanel.passwordField.text")); // NOI18N
         jLabel5.setText(NbBundle.getMessage(ConnectionPanel.class, "ConnectionPanel.jLabel5.text")); // NOI18N
-        GroupLayout layout = new GroupLayout(this);
+        org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel4)
-                    .addComponent(jLabel5))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(Alignment.LEADING)
-                    .addComponent(passwordField, GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
-                    .addComponent(userField, GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
-                    .addComponent(clientField, GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
-                    .addGroup(Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(workspaceField, GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)
-                        .addPreferredGap(ComponentPlacement.RELATED)
-                        .addComponent(jButton1))
-                    .addComponent(serverField, GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE))
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(jLabel1)
+                    .add(jLabel2)
+                    .add(jLabel3)
+                    .add(jLabel4)
+                    .add(jLabel5))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+                    .add(passwordField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
+                    .add(userField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
+                    .add(clientField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE)
+                    .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
+                        .add(workspaceField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 402, Short.MAX_VALUE)
+                        .addPreferredGap(LayoutStyle.RELATED)
+                        .add(jButton1))
+                    .add(serverField, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 478, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
+            layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
+            .add(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(workspaceField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(serverField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(clientField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(userField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
-                .addPreferredGap(ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(passwordField, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel5))
-                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(jButton1)
+                    .add(workspaceField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel1))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(serverField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel2))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(clientField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel3))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(userField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel4))
+                .addPreferredGap(LayoutStyle.RELATED)
+                .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.BASELINE)
+                    .add(passwordField, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+                    .add(jLabel5))
+                .addContainerGap(org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 

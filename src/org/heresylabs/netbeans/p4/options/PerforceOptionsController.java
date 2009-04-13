@@ -248,6 +248,9 @@ public class PerforceOptionsController extends OptionsPanelController implements
         confirmEditBox.setSelected(preferences.isConfirmEdit());
         caseSensetiveWorkspaceBox.setSelected(preferences.isCaseSensetiveWorkspaces());
         printOutputBox.setSelected(preferences.isPrintOutput());
+        if (connections.size() > 0) {
+            connectionsList.setSelectedIndex(0);
+        }
     }
 
     @Override
