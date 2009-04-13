@@ -2,3 +2,5 @@
 #labels Featured,Phase-Requirements
 
  * Colored Annotation: Specifically telling if a file is Local, or under source control.
+ * Name Annotation: Specify pattern of file name annotation
+ * Folder Annotation: Find best way to annotate folders
