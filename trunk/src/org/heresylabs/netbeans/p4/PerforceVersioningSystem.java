@@ -23,13 +23,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
+import org.heresylabs.netbeans.p4.FileStatusProvider.Status;
+import org.heresylabs.netbeans.p4.actions.DiffAction;
+import org.heresylabs.netbeans.p4.actions.DiffExternalAction;
 import org.heresylabs.netbeans.p4.actions.FileAction;
+import org.heresylabs.netbeans.p4.actions.OptionsAction;
+import org.heresylabs.netbeans.p4.actions.RefreshAction;
 import org.netbeans.modules.versioning.spi.VCSAnnotator;
 import org.netbeans.modules.versioning.spi.VCSAnnotator.ActionDestination;
 import org.netbeans.modules.versioning.spi.VCSContext;
@@ -146,6 +152,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
         this.connections = connections;
         saveConnections(NbPreferences.forModule(getClass()));
         initPerformanceHacks();
+        fireVersionedFilesChanged();
     }
 
     private void loadConnections(Preferences prefs) {
@@ -188,25 +195,38 @@ public class PerforceVersioningSystem extends VersioningSystem {
     }
 
     private Action[] getPerforceActions(VCSContext context, ActionDestination destination) {
+        // TODO use SystemAction.get() as in SVN
         if (destination == ActionDestination.PopupMenu) {
             return asArray(
+                    new RefreshAction(context),
+                    null,
                     new FileAction(context, "edit", "Edit"),
                     new FileAction(context, "sync", "Sync"),
                     new FileAction(context, "sync -f", "Sync Force"),
                     new FileAction(context, "revert", "Revert"),
                     null,
                     new FileAction(context, "add", "Add"),
-                    new FileAction(context, "delete", "Delete"));
+                    new FileAction(context, "delete", "Delete"),
+                    null,
+                    new DiffAction(context),
+                    new DiffExternalAction(context));
         }
         // if we are still here - it's main menu
         return asArray(
+                new RefreshAction(context),
+                null,
                 new FileAction(context, "edit", "Edit"),
                 new FileAction(context, "sync", "Sync"),
                 new FileAction(context, "sync -f", "Sync Force"),
                 new FileAction(context, "revert", "Revert"),
                 null,
                 new FileAction(context, "add", "Add"),
-                new FileAction(context, "delete", "Delete"));
+                new FileAction(context, "delete", "Delete"),
+                null,
+                new DiffAction(context),
+                new DiffExternalAction(context),
+                null,
+                new OptionsAction());
     }
 
     public Connection getConnectionForFile(File file) {
@@ -246,16 +266,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
     }
 
     private void add(File file) {
-        // TODO add status check here
         wrapper.execute("add", file);
     }
 
     private void delete(File file) {
-        FileStatus fs = fileStatusProvider.getFileStatusNow(file);
-        // add other statuses checks
-        if (fs == null) {
-            return;
-        }
         wrapper.execute("delete", file);
     }
 
@@ -263,6 +277,44 @@ public class PerforceVersioningSystem extends VersioningSystem {
         wrapper.execute("revert", file);
     }
 
+    public void p4merge(File file) {
+        String tmpPath = System.getProperty("java.io.tmpdir");
+        File remoteFile = new File(tmpPath, file.getName() + System.currentTimeMillis());
+        // doing it to leave temp folder clear:
+        remoteFile.deleteOnExit();
+        getOriginalFile(file, remoteFile);
+        try {
+            Runtime.getRuntime().exec("p4merge \"" + remoteFile.getCanonicalPath() + "\" \"" + file.getCanonicalPath() + "\"", null);
+        }
+        catch (Exception e) {
+            logError(this, e);
+        }
+    }
+
+    public void refresh(Set<File> files) {
+        fileStatusProvider.refreshAsync(true, files.toArray(new File[files.size()]));
+    }
+
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" file statuses ">
+    private String annotatePerforceName(String name, VCSContext context) {
+        File file = (File) context.getFiles().toArray()[0];
+        if (file.isFile()) {
+            Status status = fileStatusProvider.getFileStatus(file);
+            if (!status.isUnknown()) {
+                // TODO format file names here
+                String rev = fileStatusProvider.getFileRevision(file);
+                return name + rev;
+            }
+        }
+        return name;
+    }
+
+    public void fireFilesRefreshed(Set<File> files) {
+        fireStatusChanged(files);
+    //fireAnnotationsChanged(f);
+    }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc=" static util methods ">
@@ -432,8 +484,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
 
         @Override
         public String annotateName(String name, VCSContext context) {
-            // TODO implement
-            return super.annotateName(name, context);
+            return annotatePerforceName(name, context);
         }
 
         @Override
@@ -456,9 +507,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
 
         @Override
         public boolean beforeDelete(File file) {
-            FileStatus fs = fileStatusProvider.getFileStatusNow(file);
-            // if fs != null - it's revisioned file
-            return fs != null;
+            return !fileStatusProvider.getFileStatusForce(file).isLocal();
         }
 
         @Override
@@ -467,13 +516,11 @@ public class PerforceVersioningSystem extends VersioningSystem {
             if (res == JOptionPane.NO_OPTION) {
                 return;
             }
-            FileStatus fs = fileStatusProvider.getFileStatusNow(file);
-            if (fs == null) {
+            Status status = fileStatusProvider.getFileStatusForce(file);
+            if (status.isLocal()) {
                 logWarning(this, file.getName() + " is not revisioned. Should not be deleted by p4nb");
             }
-
-            // if file already in edit or add mode - revert it first
-            if (fs.getAction() != FileStatusProvider.ACTION_NONE) {
+            if (status != Status.NONE) {
                 revert(file);
             }
             delete(file);
@@ -516,5 +563,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
         }
 
     }
+
     // </editor-fold>
 }
