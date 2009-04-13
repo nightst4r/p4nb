@@ -1,6 +1,4 @@
-#summary p4nb Features
 #labels Featured,Phase-Design
-
  * Refresh, Edit, Sync, Add, Revert and Delete functionality
  * Two diff options: p4merge and internal NetBeans Diff
  * Diff stripe: When editing file editor will show you what parts are changed in diff stripe
