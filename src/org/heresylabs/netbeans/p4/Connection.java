@@ -17,6 +17,7 @@
 package org.heresylabs.netbeans.p4;
 
 /**
+ * Bean with all data, required to connect to Perforce server and with workspace path.
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
@@ -83,5 +84,4 @@ public class Connection {
     public String toString() {
         return server + ';' + user + ';' + client;
     }
-
 }

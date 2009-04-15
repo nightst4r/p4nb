@@ -25,12 +25,14 @@ import org.openide.util.RequestProcessor;
 import org.openide.util.RequestProcessor.Task;
 
 /**
+ * Working logic to implement status checks in perforce.
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
 public class FileStatusProvider {
 
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    private static final int REFRESH_TIMEOUT = 120000;
     private final HashMap<String, Status> actionStringsMap;
     // cached file statuses
     private Task refreshTask;
@@ -64,9 +66,14 @@ public class FileStatusProvider {
     }
 
     // <editor-fold defaultstate="collapsed" desc=" internal logic ">
+    /**
+     * Blocking method to execute "p4 fstat" command on given file, parse output and put output to cache.
+     * @param file
+     */
     private void refresh(File file) {
         Proc proc = PerforceVersioningSystem.getInstance().getWrapper().execute("fstat", file);
         String output = proc.getOutput();
+        // TODO return boolean to identify if status changed from previous
 
         // TODO check for error output for "file not revisioned" or something like that
         if (output == null || output.length() < 1) {
@@ -101,6 +108,11 @@ public class FileStatusProvider {
         lastCheckMap.put(file, System.currentTimeMillis());
     }
 
+    /**
+     * Parsing {@code haveRev} from p4 fstat output.
+     * @param output p4 fstat output
+     * @return haveRev value, or "0" if no haveRev found in output.
+     */
     private String parseHaveRevision(String output) {
         String haveRev = "0";
         int haveRevStart = output.indexOf("haveRev");
@@ -110,6 +122,11 @@ public class FileStatusProvider {
         return haveRev;
     }
 
+    /**
+     * Parsing {@code headRev} from p4 fstat output.
+     * @param output p4 fstat output
+     * @return headRev value, or "0" if no headRev found in output.
+     */
     private String parseHeadRevision(String output) {
         String headRev = "0";
         int headRevStart = output.indexOf("headRev");
@@ -119,6 +136,11 @@ public class FileStatusProvider {
         return headRev;
     }
 
+    /**
+     * Parsing {@code headAction} from p4 fstat output.
+     * @param output p4 fstat output
+     * @return headAction value, or {@code null} if no headAction found in output.
+     */
     private String parseHeadAction(String output) {
         String headAction = null;
         int headActionStart = output.indexOf("headAction");
@@ -128,6 +150,11 @@ public class FileStatusProvider {
         return headAction;
     }
 
+    /**
+     * Parsint {@code action} from p4 fstat output.
+     * @param output p4 fstat output
+     * @return one of {@code EDIT}, {@code ADD}, {@code DELETE} or {@code NONE} statuses
+     */
     private Status parseStatus(String output) {
         String actionString = null;
         // will write action with space because of some other statuses like actionOwner:
@@ -138,22 +165,39 @@ public class FileStatusProvider {
         return actionStringsMap.get(actionString);
     }
 
+    /**
+     * Getting file revision from cache.
+     * @param file
+     * @return file revision in form {@code haveRev/headRev}, or null if no revision info for given file
+     */
     public String getFileRevision(File file) {
         return revisionMap.get(file);
     }
 
+    /**
+     * Gets file status from cache. If no status found in cache - returns
+     * {@code UNKNOWN} status and submits file to async refresh.
+     * @param file
+     * @return file status from cache, or {@code UNKNOWN} if no status found in cache
+     */
     public Status getFileStatus(File file) {
         Long last = lastCheckMap.get(file);
         if (last == null) {
             refreshAsync(false, file);
             return Status.UNKNOWN;
         }
-        if (System.currentTimeMillis() - last >= 3000) {
+        if (System.currentTimeMillis() - last >= REFRESH_TIMEOUT) {
             refreshAsync(false, file);
         }
         return statusMap.get(file);
     }
 
+    /**
+     * Blocking refresh and get file status.
+     * @param file
+     * @return file status received now.
+     * @throws IllegalStateException if status is {@code UNKNOWN}
+     */
     public Status getFileStatusForce(File file) {
         refresh(file);
         Status s = getFileStatus(file);
@@ -163,6 +207,11 @@ public class FileStatusProvider {
         return s;
     }
 
+    /**
+     * Submit files to asynchronious refresh in background thread.
+     * @param recursively {@code false} to check only specified files, {@code true} to scan folders recuresively.
+     * @param files
+     */
     public void refreshAsync(boolean recursively, File... files) {
         synchronized (filesToRefresh) {
             for (int i = 0; i < files.length; i++) {
