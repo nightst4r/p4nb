@@ -32,7 +32,6 @@ public class FileStatusProvider {
 
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
     private final HashMap<String, Status> actionStringsMap;
-
     // cached file statuses
     private Task refreshTask;
     private final Set<File> filesToRefresh = new HashSet<File>();
@@ -61,7 +60,6 @@ public class FileStatusProvider {
                 }
                 PerforceVersioningSystem.getInstance().fireFilesRefreshed(files);
             }
-
         });
     }
 
@@ -75,25 +73,59 @@ public class FileStatusProvider {
             statusMap.put(file, Status.LOCAL);
         }
         else {
-            statusMap.put(file, parseStatus(output));
-            revisionMap.put(file, parseRevision(output));
+
+            Status status;
+            String headRev = parseHeadRevision(output);
+            String haveRev = parseHaveRevision(output);
+
+            // checking for deleted headAction
+            if ("delete".equals(parseHeadAction(output))) {
+                status = Status.DELETE;
+            }
+            else {
+                // checking for outdated state
+                boolean outdated = false;
+                try {
+                    int head = Integer.parseInt(headRev);
+                    int have = Integer.parseInt(haveRev);
+                    outdated = head > have;
+                }
+                catch (NumberFormatException ignore) {
+                    // ignoring revision parsing - it's better to show not actual info than to fail at all
+                }
+                status = outdated ? Status.OUTDATED : parseStatus(output);
+            }
+            statusMap.put(file, status);
+            revisionMap.put(file, haveRev + '/' + headRev);
         }
         lastCheckMap.put(file, System.currentTimeMillis());
     }
 
-    private String parseRevision(String output) {
+    private String parseHaveRevision(String output) {
         String haveRev = "0";
-        String headRev = "0";
-
         int haveRevStart = output.indexOf("haveRev");
         if (haveRevStart >= 0) {
             haveRev = cutData(output, haveRevStart);
         }
+        return haveRev;
+    }
+
+    private String parseHeadRevision(String output) {
+        String headRev = "0";
         int headRevStart = output.indexOf("headRev");
         if (headRevStart >= 0) {
             headRev = cutData(output, headRevStart);
         }
-        return ' ' + haveRev + '/' + headRev;
+        return headRev;
+    }
+
+    private String parseHeadAction(String output) {
+        String headAction = null;
+        int headActionStart = output.indexOf("headAction");
+        if (headActionStart >= 0) {
+            headAction = cutData(output, headActionStart);
+        }
+        return headAction;
     }
 
     private Status parseStatus(String output) {
@@ -180,7 +212,7 @@ public class FileStatusProvider {
     // <editor-fold defaultstate="collapsed" desc=" statuses ">
     public enum Status {
 
-        UNKNOWN, LOCAL, NONE, EDIT, ADD, DELETE;
+        UNKNOWN, LOCAL, NONE, EDIT, ADD, DELETE, OUTDATED;
 
         public boolean isLocal() {
             return this == LOCAL;

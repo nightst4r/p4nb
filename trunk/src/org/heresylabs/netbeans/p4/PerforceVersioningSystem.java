@@ -99,11 +99,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
         }
     }
     // </editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc=" workspaces performance hack ">
     private String[] workspaces;
     // </editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc=" VersioningSystem implementation ">
     private Annotator annotator = new Annotator();
     private Interceptor interceptor = new Interceptor();
@@ -140,7 +138,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
         return interceptor;
     }
     // </editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc=" connections ">
     private List<Connection> connections = new ArrayList<Connection>();
 
@@ -177,7 +174,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
         putStringList(prefs, KEY_CONNECTIONS, conns);
     }
     // </editor-fold>
-
     // <editor-fold defaultstate="collapsed" desc=" VCS logic ">
     private PerforcePreferences perforcePreferences;
 
@@ -198,33 +194,37 @@ public class PerforceVersioningSystem extends VersioningSystem {
         // TODO use SystemAction.get() as in SVN
         if (destination == ActionDestination.PopupMenu) {
             return asArray(
-                    new RefreshAction(context),
-                    null,
-                    new FileAction(context, "edit", "Edit"),
-                    new FileAction(context, "sync", "Sync"),
-                    new FileAction(context, "sync -f", "Sync Force"),
-                    new FileAction(context, "revert", "Revert"),
+                    new DiffAction(context),
+                    new DiffExternalAction(context),
                     null,
                     new FileAction(context, "add", "Add"),
                     new FileAction(context, "delete", "Delete"),
                     null,
-                    new DiffAction(context),
-                    new DiffExternalAction(context));
+                    new FileAction(context, "revert", "Revert"),
+                    null,
+                    new FileAction(context, "edit", "Edit"),
+                    null,
+                    new FileAction(context, "sync", "Sync"),
+                    new FileAction(context, "sync -f", "Sync Force"),
+                    null,
+                    new RefreshAction(context));
         }
         // if we are still here - it's main menu
         return asArray(
-                new RefreshAction(context),
-                null,
-                new FileAction(context, "edit", "Edit"),
-                new FileAction(context, "sync", "Sync"),
-                new FileAction(context, "sync -f", "Sync Force"),
-                new FileAction(context, "revert", "Revert"),
+                new DiffAction(context),
+                new DiffExternalAction(context),
                 null,
                 new FileAction(context, "add", "Add"),
                 new FileAction(context, "delete", "Delete"),
                 null,
-                new DiffAction(context),
-                new DiffExternalAction(context),
+                new FileAction(context, "revert", "Revert"),
+                null,
+                new FileAction(context, "edit", "Edit"),
+                null,
+                new FileAction(context, "sync", "Sync"),
+                new FileAction(context, "sync -f", "Sync Force"),
+                null,
+                new RefreshAction(context),
                 null,
                 new OptionsAction());
     }
@@ -253,7 +253,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
         }
         return null;
     }
-
     private CliWrapper wrapper = new CliWrapper();
     private FileStatusProvider fileStatusProvider = new FileStatusProvider();
 
@@ -263,18 +262,22 @@ public class PerforceVersioningSystem extends VersioningSystem {
 
     private void edit(File file) {
         wrapper.execute("edit", file);
+        refresh(file);
     }
 
     private void add(File file) {
         wrapper.execute("add", file);
+        refresh(file);
     }
 
     private void delete(File file) {
         wrapper.execute("delete", file);
+        refresh(file);
     }
 
     private void revert(File file) {
         wrapper.execute("revert", file);
+        refresh(file);
     }
 
     public void p4merge(File file) {
@@ -295,25 +298,65 @@ public class PerforceVersioningSystem extends VersioningSystem {
         fileStatusProvider.refreshAsync(true, files.toArray(new File[files.size()]));
     }
 
-    // </editor-fold>
+    public void refresh(File file) {
+        fileStatusProvider.refreshAsync(false, file);
+    }
 
+    // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc=" file statuses ">
     private String annotatePerforceName(String name, VCSContext context) {
         File file = (File) context.getFiles().toArray()[0];
         if (file.isFile()) {
             Status status = fileStatusProvider.getFileStatus(file);
-            if (!status.isUnknown()) {
-                // TODO format file names here
-                String rev = fileStatusProvider.getFileRevision(file);
-                return name + rev;
+            String suffix;
+            String nameColor = "000000";
+
+            if (status.isLocal()) {
+                suffix = "Local Only";
+                nameColor = "999999";
             }
+            else if (status.isUnknown()) {
+                suffix = "...";
+                nameColor = "444444";
+            }
+            else {
+                suffix = fileStatusProvider.getFileRevision(file);
+                switch (status) {
+                    case ADD: {
+                        nameColor = "008000";
+                        break;
+                    }
+                    case DELETE: {
+                        nameColor = "FF0000";
+                        break;
+                    }
+                    case EDIT: {
+                        nameColor = "0000FF";
+                        break;
+                    }
+                    case OUTDATED: {
+                        nameColor = "FFFF00";
+                        break;
+                    }
+                }
+            }
+
+            StringBuilder nameBuilder = new StringBuilder();
+            nameBuilder.append("<font color=\"#");
+            nameBuilder.append(nameColor);
+            nameBuilder.append("\">");
+            nameBuilder.append(name);
+            nameBuilder.append("</font>   <font color=\"#999999\">[ ");
+            nameBuilder.append(suffix);
+            nameBuilder.append(" ]</font>");
+            return nameBuilder.toString();
         }
         return name;
     }
 
     public void fireFilesRefreshed(Set<File> files) {
         fireStatusChanged(files);
-    //fireAnnotationsChanged(f);
+        //fireAnnotationsChanged(f);
     }
     // </editor-fold>
 
@@ -368,7 +411,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
             Logger.getLogger(PerforceVersioningSystem.class.getName()).log(Level.INFO, null, ex);
         }
     }
-
     private static final String RC_DELIMITER = "~=~";
 
     private static String getConnectionAsString(Connection connection) {
@@ -454,7 +496,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
         out.println(m);
         out.flush();
     }
-
     private static final Date currentDate = new Date();
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
@@ -491,7 +532,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
         public Action[] getActions(VCSContext context, ActionDestination destination) {
             return getPerforceActions(context, destination);
         }
-
     }
 
     private class Interceptor extends VCSInterceptor {
@@ -554,15 +594,14 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 return;
             }
             if (perforcePreferences.isConfirmEdit()) {
-                int res = JOptionPane.showConfirmDialog(null, "Are you sure you want to \"p4 edit\" file " + file.getName(), "Edit Confirmation", JOptionPane.YES_NO_OPTION);
+                String[] options = {"Yes", "No"};
+                int res = JOptionPane.showOptionDialog(null, "Are you sure you want to \"p4 edit\" file " + file.getName(), "Edit Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
                 if (res == JOptionPane.NO_OPTION) {
                     return;
                 }
             }
             edit(file);
         }
-
     }
-
     // </editor-fold>
 }
