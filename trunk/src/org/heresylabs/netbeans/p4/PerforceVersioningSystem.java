@@ -58,6 +58,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
     private static PerforceVersioningSystem INSTANCE;
 
     // <editor-fold defaultstate="collapsed" desc=" init block ">
+    /**
+     * Singleton provider.
+     * @return
+     */
     public static PerforceVersioningSystem getInstance() {
         if (INSTANCE == null) {
             logWarning(PerforceVersioningSystem.class, "PerforceVersioningSystem singleton is null");
@@ -65,6 +69,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
         return INSTANCE;
     }
 
+    /**
+     * Counstructs and inits perforce support, and assignes self to static singleton
+     */
     public PerforceVersioningSystem() {
         synchronized (PerforceVersioningSystem.class) {
             // TODO remove this check in future
@@ -91,6 +98,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
         initPerformanceHacks();
     }
 
+    /**
+     * Small performance hack to check for workspaces as fast as possible
+     */
     private void initPerformanceHacks() {
         workspaces = new String[connections.size()];
         for (int i = 0; i < connections.size(); i++) {
@@ -141,10 +151,17 @@ public class PerforceVersioningSystem extends VersioningSystem {
     // <editor-fold defaultstate="collapsed" desc=" connections ">
     private List<Connection> connections = new ArrayList<Connection>();
 
+    /**
+     * @return copy of current connections
+     */
     public List<Connection> getConnections() {
         return new ArrayList<Connection>(connections);
     }
 
+    /**
+     * Set new connections list, with full save and init cycle.
+     * @param connections
+     */
     public void setConnections(List<Connection> connections) {
         this.connections = connections;
         saveConnections(NbPreferences.forModule(getClass()));
@@ -152,6 +169,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
         fireVersionedFilesChanged();
     }
 
+    /**
+     * Parse prefs for connections params
+     * @param prefs
+     */
     private void loadConnections(Preferences prefs) {
         // TODO think about synchronisation
         List<String> connectionsStrings = getStringList(prefs, KEY_CONNECTIONS);
@@ -166,6 +187,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
         connections = conns;
     }
 
+    /**
+     * Save all connection params to NbPreferences.
+     * @param prefs
+     */
     private void saveConnections(Preferences prefs) {
         List<String> conns = new ArrayList<String>(connections.size());
         for (int i = 0; i < connections.size(); i++) {
@@ -190,6 +215,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
         initPerformanceHacks();
     }
 
+    /**
+     * Implementation of Actions getter.
+     * @see org.netbeans.modules.versioning.spi.VCSAnnotator#getActions(org.netbeans.modules.versioning.spi.VCSContext, org.netbeans.modules.versioning.spi.VCSAnnotator.ActionDestination)
+     */
     private Action[] getPerforceActions(VCSContext context, ActionDestination destination) {
         // TODO use SystemAction.get() as in SVN
         if (destination == ActionDestination.PopupMenu) {
@@ -346,7 +375,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
             nameBuilder.append(nameColor);
             nameBuilder.append("\">");
             nameBuilder.append(name);
-            nameBuilder.append("</font>   <font color=\"#999999\">[ ");
+            nameBuilder.append("</font>  <font color=\"#999999\">[ ");
             nameBuilder.append(suffix);
             nameBuilder.append(" ]</font>");
             return nameBuilder.toString();

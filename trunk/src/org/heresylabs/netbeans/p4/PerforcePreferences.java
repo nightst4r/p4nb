@@ -17,6 +17,7 @@
 package org.heresylabs.netbeans.p4;
 
 /**
+ * Bean to store preferences.
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
