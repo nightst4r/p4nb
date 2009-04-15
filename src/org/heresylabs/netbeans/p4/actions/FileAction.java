@@ -58,6 +58,7 @@ public class FileAction extends AbstractAction {
                 PerforceVersioningSystem.logWarning(this, "Bad exitValue of process: " + p.getErrors());
             }
         }
+        PerforceVersioningSystem.getInstance().refresh(files);
     }
 
 }

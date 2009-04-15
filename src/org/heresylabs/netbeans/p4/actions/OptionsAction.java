@@ -19,6 +19,7 @@ package org.heresylabs.netbeans.p4.actions;
 
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
+import javax.swing.JOptionPane;
 import org.netbeans.api.options.OptionsDisplayer;
 
 /**
@@ -32,7 +33,7 @@ public class OptionsAction extends AbstractAction {
     }
 
     public void actionPerformed(ActionEvent e) {
-        OptionsDisplayer.getDefault().open("VersioningOptionsDialog/Perforce");
+        OptionsDisplayer.getDefault().open(JOptionPane.showInputDialog("Options category:"));
     }
 
 }
