@@ -36,6 +36,7 @@ import org.heresylabs.netbeans.p4.actions.DiffExternalAction;
 import org.heresylabs.netbeans.p4.actions.FileAction;
 import org.heresylabs.netbeans.p4.actions.OptionsAction;
 import org.heresylabs.netbeans.p4.actions.RefreshAction;
+import org.heresylabs.netbeans.p4.actions.RefreshRecursivelyAction;
 import org.netbeans.modules.versioning.spi.VCSAnnotator;
 import org.netbeans.modules.versioning.spi.VCSAnnotator.ActionDestination;
 import org.netbeans.modules.versioning.spi.VCSContext;
@@ -43,6 +44,7 @@ import org.netbeans.modules.versioning.spi.VCSInterceptor;
 import org.netbeans.modules.versioning.spi.VersioningSupport;
 import org.netbeans.modules.versioning.spi.VersioningSystem;
 import org.openide.util.NbPreferences;
+import org.openide.util.actions.SystemAction;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
 import org.openide.windows.OutputWriter;
@@ -224,8 +226,8 @@ public class PerforceVersioningSystem extends VersioningSystem {
         // TODO use SystemAction.get() as in SVN
         if (destination == ActionDestination.PopupMenu) {
             return asArray(
-                    new DiffAction(context),
-                    new DiffExternalAction(context),
+                    SystemAction.get(DiffAction.class),
+                    SystemAction.get(DiffExternalAction.class),
                     null,
                     new FileAction(context, "add", "Add"),
                     new FileAction(context, "delete", "Delete"),
@@ -237,12 +239,13 @@ public class PerforceVersioningSystem extends VersioningSystem {
                     new FileAction(context, "sync", "Sync"),
                     new FileAction(context, "sync -f", "Sync Force"),
                     null,
-                    new RefreshAction(context));
+                    SystemAction.get(RefreshAction.class),
+                    SystemAction.get(RefreshRecursivelyAction.class));
         }
         // if we are still here - it's main menu
         return asArray(
-                new DiffAction(context),
-                new DiffExternalAction(context),
+                SystemAction.get(DiffAction.class),
+                SystemAction.get(DiffExternalAction.class),
                 null,
                 new FileAction(context, "add", "Add"),
                 new FileAction(context, "delete", "Delete"),
@@ -254,7 +257,8 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 new FileAction(context, "sync", "Sync"),
                 new FileAction(context, "sync -f", "Sync Force"),
                 null,
-                new RefreshAction(context),
+                SystemAction.get(RefreshAction.class),
+                SystemAction.get(RefreshRecursivelyAction.class),
                 null,
                 new OptionsAction());
     }
@@ -338,7 +342,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
         if (context.getFiles().size() > 1) {
             return name;
         }
-        File file = (File) context.getFiles().toArray()[0];
+        File file = context.getRootFiles().iterator().next();
         if (file.isFile()) {
             Status status = fileStatusProvider.getFileStatus(file);
             String suffix;

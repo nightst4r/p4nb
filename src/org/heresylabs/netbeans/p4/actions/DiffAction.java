@@ -18,44 +18,30 @@ package org.heresylabs.netbeans.p4.actions;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.StringReader;
-import javax.swing.AbstractAction;
 import org.heresylabs.netbeans.p4.PerforceVersioningSystem;
 import org.netbeans.api.diff.Diff;
 import org.netbeans.api.diff.DiffView;
 import org.netbeans.api.diff.StreamSource;
-import org.netbeans.modules.versioning.spi.VCSContext;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.windows.TopComponent;
 
 /**
+ * Action to open internal Diff. Works only if single file is selected.
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
-public class DiffAction extends AbstractAction {
+public class DiffAction extends AbstractSingleNodeAction {
 
-    private final VCSContext context;
-
-    public DiffAction(VCSContext context) {
-        putValue(NAME, "Diff");
-        this.context = context;
+    public DiffAction() {
+        super("Diff");
     }
 
-    public void actionPerformed(ActionEvent e) {
-        if (context == null || context.getFiles().isEmpty()) {
-            PerforceVersioningSystem.print("No files to perform operation", true);
-            return;
-        }
-        PerforceVersioningSystem p4 = PerforceVersioningSystem.getInstance();
-        for (File f : context.getFiles()) {
-            if (f.isFile()) {
-                // TODO background it
-                showDiff(f);
-            }
-        }
+    @Override
+    protected void performAction(File file) {
+        showDiff(file);
     }
 
     private void showDiff(File file) {
@@ -72,7 +58,7 @@ public class DiffAction extends AbstractAction {
             String mime;
             FileObject fo = FileUtil.toFileObject(file);
             if (fo == null) {
-                 mime = "text/plain";
+                mime = "text/plain";
             }
             else {
                 mime = fo.getMIMEType();
@@ -125,6 +111,5 @@ public class DiffAction extends AbstractAction {
         protected String preferredID() {
             return "Perforce Diff";
         }
-
     }
 }

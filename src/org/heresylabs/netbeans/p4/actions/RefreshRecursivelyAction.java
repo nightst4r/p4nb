@@ -24,35 +24,34 @@ import org.netbeans.modules.versioning.spi.VCSContext;
 import org.openide.nodes.Node;
 
 /**
- * Action to refresh selected files. If folder is selected - only first level files will be refreshed.
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
-public class RefreshAction extends AbstractAction {
+public class RefreshRecursivelyAction extends AbstractAction {
 
-    public RefreshAction() {
-        super("Refresh");
+    public RefreshRecursivelyAction() {
+        super("Refresh Recursively");
     }
 
     @Override
     protected void performAction(Node[] activatedNodes) {
         Set<File> rootFiles = VCSContext.forNodes(activatedNodes).getRootFiles();
-        Set<File> files = new HashSet<File>(rootFiles.size());
-        for (File file : rootFiles) {
-            if (file.isFile()) {
-                files.add(file);
-            }
-            else {
-                File[] ff = file.listFiles();
-                for (int i = 0; i < ff.length; i++) {
-                    File f = ff[i];
-                    if (f.isFile()) {
-                        files.add(f);
-                    }
-                }
-            }
+        Set<File> filesRecuresively = new HashSet<File>();
+        for (File f : rootFiles) {
+            addFilesRecursively(f, filesRecuresively);
         }
-        PerforceVersioningSystem.getInstance().refresh(files);
+        PerforceVersioningSystem.getInstance().refresh(filesRecuresively);
+    }
+
+    private void addFilesRecursively(File file, Set<File> files) {
+        if (file.isFile()) {
+            files.add(file);
+            return;
+        }
+        File[] f = file.listFiles();
+        for (int i = 0; i < f.length; i++) {
+            addFilesRecursively(f[i], files);
+        }
     }
 
     @Override

@@ -17,23 +17,30 @@
 
 package org.heresylabs.netbeans.p4.actions;
 
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import org.netbeans.api.options.OptionsDisplayer;
+import java.io.File;
+import org.netbeans.modules.versioning.spi.VCSContext;
+import org.openide.nodes.Node;
 
 /**
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
-public class OptionsAction extends AbstractAction {
+public abstract class AbstractSingleNodeAction extends AbstractAction {
 
-    public OptionsAction() {
-        putValue(NAME, "Options");
+    public AbstractSingleNodeAction(String name) {
+        super(name);
     }
 
-    public void actionPerformed(ActionEvent e) {
-        // TODO find the way to open perforce panel at once
-        OptionsDisplayer.getDefault().open("Advanced/org-netbeans-modules-versioning-util-VcsAdvancedOptions");
+    protected abstract void performAction(File file);
+
+    @Override
+    protected final void performAction(Node[] activatedNodes) {
+        performAction(VCSContext.forNodes(activatedNodes).getRootFiles().iterator().next());
+    }
+
+    @Override
+    protected final boolean enable(Node[] activatedNodes) {
+        return VCSContext.forNodes(activatedNodes).getRootFiles().size() == 1;
     }
 
 }

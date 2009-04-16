@@ -14,26 +14,38 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with p4nb.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.heresylabs.netbeans.p4.actions;
 
-import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
-import org.netbeans.api.options.OptionsDisplayer;
+import org.openide.nodes.Node;
+import org.openide.util.HelpCtx;
+import org.openide.util.actions.NodeAction;
 
 /**
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
-public class OptionsAction extends AbstractAction {
+public abstract class AbstractAction extends NodeAction {
 
-    public OptionsAction() {
-        putValue(NAME, "Options");
+    private final String name;
+
+    public AbstractAction(String name) {
+        this.name = name;
     }
 
-    public void actionPerformed(ActionEvent e) {
-        // TODO find the way to open perforce panel at once
-        OptionsDisplayer.getDefault().open("Advanced/org-netbeans-modules-versioning-util-VcsAdvancedOptions");
+    @Override
+    abstract protected void performAction(Node[] activatedNodes);
+
+    @Override
+    abstract protected boolean enable(Node[] activatedNodes);
+
+    @Override
+    public final String getName() {
+        return name;
+    }
+
+    @Override
+    public final HelpCtx getHelpCtx() {
+        return null;
     }
 
 }
