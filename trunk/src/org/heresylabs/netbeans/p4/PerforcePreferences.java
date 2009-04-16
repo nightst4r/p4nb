@@ -27,28 +27,20 @@ public class PerforcePreferences {
     public PerforcePreferences() {
     }
 
-    public PerforcePreferences(boolean interceptEdit, boolean interceptDelete, boolean interceptAdd, boolean confirmEdit, boolean caseSensetiveWorkspaces, boolean printOutput) {
-        this.interceptEdit = interceptEdit;
-        this.interceptDelete = interceptDelete;
-        this.interceptAdd = interceptAdd;
-        this.confirmEdit = confirmEdit;
+    public PerforcePreferences(boolean caseSensetiveWorkspaces, boolean confirmEdit, boolean interceptAdd, boolean printOutput, boolean showAction) {
         this.caseSensetiveWorkspaces = caseSensetiveWorkspaces;
+        this.confirmEdit = confirmEdit;
+        this.interceptAdd = interceptAdd;
         this.printOutput = printOutput;
+        this.showAction = showAction;
     }
 
     // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc=" interceptors ">
-    private boolean interceptEdit;
-    private boolean interceptDelete;
-    private boolean interceptAdd;
-    // </editor-fold>
-
-    // <editor-fold defaultstate="collapsed" desc=" settings ">
-    private boolean confirmEdit;
     private boolean caseSensetiveWorkspaces;
+    private boolean confirmEdit;
+    private boolean interceptAdd;
     private boolean printOutput;
-    // </editor-fold>
+    private boolean showAction;
 
     // <editor-fold defaultstate="collapsed" desc=" getters/setters ">
     public boolean isCaseSensetiveWorkspaces() {
@@ -59,12 +51,12 @@ public class PerforcePreferences {
         this.caseSensetiveWorkspaces = caseSensetiveWorkspaces;
     }
 
-    public boolean isPrintOutput() {
-        return printOutput;
+    public boolean isConfirmEdit() {
+        return confirmEdit;
     }
 
-    public void setPrintOutput(boolean printOutput) {
-        this.printOutput = printOutput;
+    public void setConfirmEdit(boolean confirmEdit) {
+        this.confirmEdit = confirmEdit;
     }
 
     public boolean isInterceptAdd() {
@@ -75,29 +67,20 @@ public class PerforcePreferences {
         this.interceptAdd = interceptAdd;
     }
 
-    public boolean isInterceptDelete() {
-        return interceptDelete;
+    public boolean isPrintOutput() {
+        return printOutput;
     }
 
-    public void setInterceptDelete(boolean interceptDelete) {
-        this.interceptDelete = interceptDelete;
+    public void setPrintOutput(boolean printOutput) {
+        this.printOutput = printOutput;
     }
 
-    public boolean isInterceptEdit() {
-        return interceptEdit;
+    public boolean isShowAction() {
+        return showAction;
     }
 
-    public void setInterceptEdit(boolean interceptEdit) {
-        this.interceptEdit = interceptEdit;
+    public void setShowAction(boolean showAction) {
+        this.showAction = showAction;
     }
-
-    public boolean isConfirmEdit() {
-        return confirmEdit;
-    }
-
-    public void setConfirmEdit(boolean confirmEdit) {
-        this.confirmEdit = confirmEdit;
-    }
-
     // </editor-fold>
 }

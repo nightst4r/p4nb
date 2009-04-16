@@ -53,12 +53,11 @@ public class PerforceOptionsController extends OptionsPanelController implements
     // TODO format this class for maximum readability
 
     private JPanel perforceOptionsPanel;
-    private JCheckBox interceptEditBox;
-    private JCheckBox interceptDeleteBox;
     private JCheckBox interceptAddBox;
     private JCheckBox confirmEditBox;
     private JCheckBox caseSensetiveWorkspaceBox;
     private JCheckBox printOutputBox;
+    private JCheckBox showActionBox;
     private ConnectionPanel connectionPanel;
     private JList connectionsList;
     private ConnectionsListModel listModel;
@@ -102,19 +101,17 @@ public class PerforceOptionsController extends OptionsPanelController implements
     private JPanel createPreferencesPanel() {
 
         interceptAddBox = new JCheckBox("Intercept Add operation");
-        interceptDeleteBox = new JCheckBox("Intercept Delete operation");
-        interceptEditBox = new JCheckBox("Intercept Edit operation");
         confirmEditBox = new JCheckBox("Confirmation before Edit");
         caseSensetiveWorkspaceBox = new JCheckBox("Case Sensetive workspaces");
         printOutputBox = new JCheckBox("Print output");
+        showActionBox = new JCheckBox("Show Action");
 
         Box box = Box.createVerticalBox();
-        box.add(interceptEditBox);
         box.add(interceptAddBox);
-        box.add(interceptDeleteBox);
         box.add(confirmEditBox);
         box.add(caseSensetiveWorkspaceBox);
         box.add(printOutputBox);
+        box.add(showActionBox);
 
         // wrapping into panel because of different Box printing
         JPanel panel = new JPanel(new GridLayout(1, 1));
@@ -243,11 +240,10 @@ public class PerforceOptionsController extends OptionsPanelController implements
         connections = PerforceVersioningSystem.getInstance().getConnections();
         preferences = PerforceVersioningSystem.getInstance().getPerforcePreferences();
         interceptAddBox.setSelected(preferences.isInterceptAdd());
-        interceptDeleteBox.setSelected(preferences.isInterceptDelete());
-        interceptEditBox.setSelected(preferences.isInterceptEdit());
         confirmEditBox.setSelected(preferences.isConfirmEdit());
         caseSensetiveWorkspaceBox.setSelected(preferences.isCaseSensetiveWorkspaces());
         printOutputBox.setSelected(preferences.isPrintOutput());
+        showActionBox.setSelected(preferences.isShowAction());
         if (connections.size() > 0) {
             connectionsList.setSelectedIndex(0);
         }
@@ -257,10 +253,9 @@ public class PerforceOptionsController extends OptionsPanelController implements
     public void applyChanges() {
         preferences.setCaseSensetiveWorkspaces(caseSensetiveWorkspaceBox.isSelected());
         preferences.setInterceptAdd(interceptAddBox.isSelected());
-        preferences.setInterceptDelete(interceptDeleteBox.isSelected());
-        preferences.setInterceptEdit(interceptEditBox.isSelected());
         preferences.setConfirmEdit(confirmEditBox.isSelected());
         preferences.setPrintOutput(printOutputBox.isSelected());
+        preferences.setShowAction(showActionBox.isSelected());
         int index = connectionsList.getSelectedIndex();
         if (index >= 0) {
             connectionPanelToConnection(connections.get(index));

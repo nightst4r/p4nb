@@ -40,6 +40,7 @@ import org.netbeans.modules.versioning.spi.VCSAnnotator;
 import org.netbeans.modules.versioning.spi.VCSAnnotator.ActionDestination;
 import org.netbeans.modules.versioning.spi.VCSContext;
 import org.netbeans.modules.versioning.spi.VCSInterceptor;
+import org.netbeans.modules.versioning.spi.VersioningSupport;
 import org.netbeans.modules.versioning.spi.VersioningSystem;
 import org.openide.util.NbPreferences;
 import org.openide.windows.IOProvider;
@@ -203,9 +204,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
     private PerforcePreferences perforcePreferences;
 
     public PerforcePreferences getPerforcePreferences() {
-        return new PerforcePreferences(perforcePreferences.isInterceptEdit(), perforcePreferences.isInterceptDelete(),
-                perforcePreferences.isInterceptAdd(), perforcePreferences.isConfirmEdit(),
-                perforcePreferences.isCaseSensetiveWorkspaces(), perforcePreferences.isPrintOutput());
+        return new PerforcePreferences(perforcePreferences.isCaseSensetiveWorkspaces(),
+                perforcePreferences.isConfirmEdit(), perforcePreferences.isInterceptAdd(),
+                perforcePreferences.isPrintOutput(), perforcePreferences.isShowAction());
     }
 
     public void setPerforcePreferences(PerforcePreferences perforcePreferences) {
@@ -334,6 +335,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc=" file statuses ">
     private String annotatePerforceName(String name, VCSContext context) {
+        if (context.getFiles().size() > 1) {
+            return name;
+        }
         File file = (File) context.getFiles().toArray()[0];
         if (file.isFile()) {
             Status status = fileStatusProvider.getFileStatus(file);
@@ -375,9 +379,18 @@ public class PerforceVersioningSystem extends VersioningSystem {
             nameBuilder.append(nameColor);
             nameBuilder.append("\">");
             nameBuilder.append(name);
-            nameBuilder.append("</font>  <font color=\"#999999\">[ ");
-            nameBuilder.append(suffix);
-            nameBuilder.append(" ]</font>");
+            nameBuilder.append("</font>");
+            boolean annotationsVisible = VersioningSupport.getPreferences().getBoolean(VersioningSupport.PREF_BOOLEAN_TEXT_ANNOTATIONS_VISIBLE, false);
+            if (annotationsVisible) {
+                nameBuilder.append("   <font color=\"#999999\">[ ");
+                nameBuilder.append(suffix);
+                if (perforcePreferences.isShowAction()) {
+                    nameBuilder.append(':').append(' ');
+                    // TODO add status in other form than this
+                    nameBuilder.append(status.toString());
+                }
+                nameBuilder.append(" ]</font>");
+            }
             return nameBuilder.toString();
         }
         return name;
@@ -463,23 +476,21 @@ public class PerforceVersioningSystem extends VersioningSystem {
 
     private static String getPreferencesAsString(PerforcePreferences p) {
         StringBuilder sb = new StringBuilder();
-        sb.append(p.isInterceptAdd() ? 't' : 'f');
-        sb.append(p.isInterceptDelete() ? 't' : 'f');
-        sb.append(p.isInterceptEdit() ? 't' : 'f');
-        sb.append(p.isConfirmEdit() ? 't' : 'f');
         sb.append(p.isCaseSensetiveWorkspaces() ? 't' : 'f');
+        sb.append(p.isConfirmEdit() ? 't' : 'f');
+        sb.append(p.isInterceptAdd() ? 't' : 'f');
         sb.append(p.isPrintOutput() ? 't' : 'f');
+        sb.append(p.isShowAction() ? 't' : 'f');
         return sb.toString();
     }
 
     private static PerforcePreferences parsePreferences(String s) {
         PerforcePreferences p = new PerforcePreferences();
-        p.setInterceptAdd(s.charAt(0) == 't');
-        p.setInterceptDelete(s.charAt(1) == 't');
-        p.setInterceptEdit(s.charAt(2) == 't');
-        p.setConfirmEdit(s.charAt(3) == 't');
-        p.setCaseSensetiveWorkspaces(s.charAt(4) == 't');
-        p.setPrintOutput(s.charAt(5) == 't');
+        p.setCaseSensetiveWorkspaces(s.charAt(0) == 't');
+        p.setConfirmEdit(s.charAt(1) == 't');
+        p.setInterceptAdd(s.charAt(2) == 't');
+        p.setPrintOutput(s.charAt(3) == 't');
+        p.setShowAction(s.charAt(4) == 't');
         return p;
     }
 
@@ -567,10 +578,11 @@ public class PerforceVersioningSystem extends VersioningSystem {
 
         @Override
         public boolean isMutable(File file) {
-            // original check for readonly does not work for Perforce:
-            if (perforcePreferences.isInterceptEdit()) {
-                return true;
-            }
+            /*
+             * TODO find the best way to implement this option for perforce:
+             * - in default implementation "intercept edit" option will not be used
+             * - if return true and user will say "no" - editing will be possible, but saving will not.
+             */
             return super.isMutable(file);
         }
 
