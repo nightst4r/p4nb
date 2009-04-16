@@ -14,39 +14,25 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with p4nb.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.heresylabs.netbeans.p4.actions;
 
-import java.awt.event.ActionEvent;
 import java.io.File;
-import javax.swing.AbstractAction;
+import java.util.List;
 import org.heresylabs.netbeans.p4.PerforceVersioningSystem;
-import org.netbeans.modules.versioning.spi.VCSContext;
+import org.openide.nodes.Node;
 
 /**
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
-public class DiffExternalAction extends AbstractAction {
+public class DiffExternalAction extends AbstractSingleNodeAction {
 
-    private final VCSContext context;
-
-    public DiffExternalAction(VCSContext context) {
-        putValue(NAME, "Diff External");
-        this.context = context;
+    public DiffExternalAction() {
+        super("Diff External");
     }
 
-    public void actionPerformed(ActionEvent e) {
-        if (context == null || context.getFiles().isEmpty()) {
-            PerforceVersioningSystem.print("No files to perform operation", true);
-            return;
-        }
-        for (File f : context.getFiles()) {
-            if (f.isFile()) {
-                // TODO background it
-                PerforceVersioningSystem.getInstance().p4merge(f);
-            }
-        }
+    @Override
+    protected void performAction(File file) {
+        PerforceVersioningSystem.getInstance().p4merge(file);
     }
-
 }
