@@ -1,22 +1,23 @@
 /*
  * This file is part of p4nb.
- * 
+ *
  * p4nb is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * p4nb is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with p4nb.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.heresylabs.netbeans.p4.options;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -51,7 +52,6 @@ import org.openide.util.Lookup;
 public class PerforceOptionsController extends OptionsPanelController implements ListSelectionListener, DocumentListener {
 
     // TODO format this class for maximum readability
-
     private JPanel perforceOptionsPanel;
     private JCheckBox interceptAddBox;
     private JCheckBox confirmEditBox;
@@ -59,6 +59,7 @@ public class PerforceOptionsController extends OptionsPanelController implements
     private JCheckBox printOutputBox;
     private JCheckBox showActionBox;
     private ConnectionPanel connectionPanel;
+    private ColorsPanel colorsPanel;
     private JList connectionsList;
     private ConnectionsListModel listModel;
     private List<Connection> connections;
@@ -107,16 +108,21 @@ public class PerforceOptionsController extends OptionsPanelController implements
         showActionBox = new JCheckBox("Show Action");
 
         Box box = Box.createVerticalBox();
+        box.setBorder(BorderFactory.createTitledBorder("Prefernces"));
         box.add(interceptAddBox);
         box.add(confirmEditBox);
         box.add(caseSensetiveWorkspaceBox);
         box.add(printOutputBox);
         box.add(showActionBox);
 
+        colorsPanel = new ColorsPanel();
+        colorsPanel.setBorder(BorderFactory.createTitledBorder("Colors"));
+
         // wrapping into panel because of different Box printing
-        JPanel panel = new JPanel(new GridLayout(1, 1));
+        JPanel panel = new JPanel(new BorderLayout(6, 6));
         panel.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
-        panel.add(box);
+        panel.add(box, BorderLayout.NORTH);
+        panel.add(colorsPanel, BorderLayout.CENTER);
 
         return panel;
     }
@@ -128,7 +134,6 @@ public class PerforceOptionsController extends OptionsPanelController implements
             public void actionPerformed(ActionEvent e) {
                 addConnectionAction();
             }
-
         });
         JButton removeButton = new JButton("Remove");
         removeButton.addActionListener(new ActionListener() {
@@ -136,7 +141,6 @@ public class PerforceOptionsController extends OptionsPanelController implements
             public void actionPerformed(ActionEvent e) {
                 removeConnectionAction();
             }
-
         });
         JButton upButton = new JButton("Up");
         upButton.addActionListener(new ActionListener() {
@@ -144,7 +148,6 @@ public class PerforceOptionsController extends OptionsPanelController implements
             public void actionPerformed(ActionEvent e) {
                 upConnectionAction();
             }
-
         });
         JButton downButton = new JButton("Down");
         downButton.addActionListener(new ActionListener() {
@@ -152,7 +155,6 @@ public class PerforceOptionsController extends OptionsPanelController implements
             public void actionPerformed(ActionEvent e) {
                 downConnectionAction();
             }
-
         });
 
         JPanel gridPanel = new JPanel(new GridLayout(4, 1, 0, 6));
@@ -168,7 +170,6 @@ public class PerforceOptionsController extends OptionsPanelController implements
         box.add(Box.createVerticalGlue());
         return box;
     }
-
     private int selectedRow = -1;
 
     public void valueChanged(ListSelectionEvent e) {
@@ -234,6 +235,11 @@ public class PerforceOptionsController extends OptionsPanelController implements
         fireWorkspaceChanged();
     }
 
+    private void changeButtonColor(String colorString, JButton button) {
+        button.setBackground(Color.decode('#' + colorString));
+        button.setText(colorString);
+    }
+
     // <editor-fold defaultstate="collapsed" desc=" OptionsPanelController ">
     @Override
     public void update() {
@@ -247,6 +253,15 @@ public class PerforceOptionsController extends OptionsPanelController implements
         if (connections.size() > 0) {
             connectionsList.setSelectedIndex(0);
         }
+
+        // setting colors:
+        changeButtonColor(preferences.getColorAdd(), colorsPanel.colorAddButton);
+        changeButtonColor(preferences.getColorBase(), colorsPanel.colorBaseButton);
+        changeButtonColor(preferences.getColorDelete(), colorsPanel.colorDeleteButton);
+        changeButtonColor(preferences.getColorEdit(), colorsPanel.colorEditButton);
+        changeButtonColor(preferences.getColorLocal(), colorsPanel.colorLocalButton);
+        changeButtonColor(preferences.getColorOutdated(), colorsPanel.colorOutdatedButton);
+        changeButtonColor(preferences.getColorUnknown(), colorsPanel.colorUnknownButton);
     }
 
     @Override
@@ -256,10 +271,20 @@ public class PerforceOptionsController extends OptionsPanelController implements
         preferences.setConfirmEdit(confirmEditBox.isSelected());
         preferences.setPrintOutput(printOutputBox.isSelected());
         preferences.setShowAction(showActionBox.isSelected());
+
         int index = connectionsList.getSelectedIndex();
         if (index >= 0) {
             connectionPanelToConnection(connections.get(index));
         }
+
+        preferences.setColorAdd(colorsPanel.colorAddButton.getText());
+        preferences.setColorBase(colorsPanel.colorBaseButton.getText());
+        preferences.setColorDelete(colorsPanel.colorDeleteButton.getText());
+        preferences.setColorEdit(colorsPanel.colorEditButton.getText());
+        preferences.setColorLocal(colorsPanel.colorLocalButton.getText());
+        preferences.setColorOutdated(colorsPanel.colorOutdatedButton.getText());
+        preferences.setColorUnknown(colorsPanel.colorUnknownButton.getText());
+
         PerforceVersioningSystem.getInstance().setConnections(connections);
         PerforceVersioningSystem.getInstance().setPerforcePreferences(preferences);
     }
@@ -333,6 +358,5 @@ public class PerforceOptionsController extends OptionsPanelController implements
         public void fireChanged(int a, int b) {
             fireContentsChanged(this, a, b);
         }
-
     }
 }
