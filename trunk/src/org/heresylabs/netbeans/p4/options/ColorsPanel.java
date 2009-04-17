@@ -51,7 +51,7 @@ public class ColorsPanel extends javax.swing.JPanel implements ActionListener {
         colorOutdatedButton.addActionListener(this);
         colorUnknownButton.addActionListener(this);
 
-        Font font = new Font(Font.MONOSPACED, Font.PLAIN, colorBaseButton.getFont().getSize());
+        Font font = new Font("Monospaced", Font.PLAIN, colorBaseButton.getFont().getSize());
         colorAddButton.setFont(font);
         colorBaseButton.setFont(font);
         colorDeleteButton.setFont(font);
