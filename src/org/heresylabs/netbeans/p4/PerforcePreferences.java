@@ -27,20 +27,33 @@ public class PerforcePreferences {
     public PerforcePreferences() {
     }
 
-    public PerforcePreferences(boolean caseSensetiveWorkspaces, boolean confirmEdit, boolean interceptAdd, boolean printOutput, boolean showAction) {
+    public PerforcePreferences(boolean caseSensetiveWorkspaces, boolean confirmEdit, boolean interceptAdd, boolean printOutput, boolean showAction, String colorBase, String colorLocal, String colorUnknown, String colorAdd, String colorDelete, String colorEdit, String colorOutdated) {
         this.caseSensetiveWorkspaces = caseSensetiveWorkspaces;
         this.confirmEdit = confirmEdit;
         this.interceptAdd = interceptAdd;
         this.printOutput = printOutput;
         this.showAction = showAction;
+        this.colorBase = colorBase;
+        this.colorLocal = colorLocal;
+        this.colorUnknown = colorUnknown;
+        this.colorAdd = colorAdd;
+        this.colorDelete = colorDelete;
+        this.colorEdit = colorEdit;
+        this.colorOutdated = colorOutdated;
     }
-
     // </editor-fold>
     private boolean caseSensetiveWorkspaces;
     private boolean confirmEdit;
     private boolean interceptAdd;
     private boolean printOutput;
     private boolean showAction;
+    private String colorBase = "000000";
+    private String colorLocal = "999999";
+    private String colorUnknown = "444444";
+    private String colorAdd = "008000";
+    private String colorDelete = "FF0000";
+    private String colorEdit = "0000FF";
+    private String colorOutdated = "FFFF00";
 
     // <editor-fold defaultstate="collapsed" desc=" getters/setters ">
     public boolean isCaseSensetiveWorkspaces() {
@@ -81,6 +94,62 @@ public class PerforcePreferences {
 
     public void setShowAction(boolean showAction) {
         this.showAction = showAction;
+    }
+
+    public String getColorAdd() {
+        return colorAdd;
+    }
+
+    public void setColorAdd(String colorAdd) {
+        this.colorAdd = colorAdd;
+    }
+
+    public String getColorBase() {
+        return colorBase;
+    }
+
+    public void setColorBase(String colorBase) {
+        this.colorBase = colorBase;
+    }
+
+    public String getColorDelete() {
+        return colorDelete;
+    }
+
+    public void setColorDelete(String colorDelete) {
+        this.colorDelete = colorDelete;
+    }
+
+    public String getColorEdit() {
+        return colorEdit;
+    }
+
+    public void setColorEdit(String colorEdit) {
+        this.colorEdit = colorEdit;
+    }
+
+    public String getColorLocal() {
+        return colorLocal;
+    }
+
+    public void setColorLocal(String colorLocal) {
+        this.colorLocal = colorLocal;
+    }
+
+    public String getColorOutdated() {
+        return colorOutdated;
+    }
+
+    public void setColorOutdated(String colorOutdated) {
+        this.colorOutdated = colorOutdated;
+    }
+
+    public String getColorUnknown() {
+        return colorUnknown;
+    }
+
+    public void setColorUnknown(String colorUnknown) {
+        this.colorUnknown = colorUnknown;
     }
     // </editor-fold>
 }

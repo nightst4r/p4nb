@@ -208,7 +208,11 @@ public class PerforceVersioningSystem extends VersioningSystem {
     public PerforcePreferences getPerforcePreferences() {
         return new PerforcePreferences(perforcePreferences.isCaseSensetiveWorkspaces(),
                 perforcePreferences.isConfirmEdit(), perforcePreferences.isInterceptAdd(),
-                perforcePreferences.isPrintOutput(), perforcePreferences.isShowAction());
+                perforcePreferences.isPrintOutput(), perforcePreferences.isShowAction(),
+                perforcePreferences.getColorBase(), perforcePreferences.getColorLocal(),
+                perforcePreferences.getColorUnknown(), perforcePreferences.getColorAdd(),
+                perforcePreferences.getColorDelete(), perforcePreferences.getColorEdit(),
+                perforcePreferences.getColorOutdated());
     }
 
     public void setPerforcePreferences(PerforcePreferences perforcePreferences) {
@@ -346,33 +350,33 @@ public class PerforceVersioningSystem extends VersioningSystem {
         if (file.isFile()) {
             Status status = fileStatusProvider.getFileStatus(file);
             String suffix;
-            String nameColor = "000000";
+            String nameColor = perforcePreferences.getColorBase();
 
             if (status.isLocal()) {
                 suffix = "Local Only";
-                nameColor = "999999";
+                nameColor = perforcePreferences.getColorLocal();
             }
             else if (status.isUnknown()) {
                 suffix = "...";
-                nameColor = "444444";
+                nameColor = perforcePreferences.getColorUnknown();
             }
             else {
                 suffix = fileStatusProvider.getFileRevision(file);
                 switch (status) {
                     case ADD: {
-                        nameColor = "008000";
+                        nameColor = perforcePreferences.getColorAdd();
                         break;
                     }
                     case DELETE: {
-                        nameColor = "FF0000";
+                        nameColor = perforcePreferences.getColorDelete();
                         break;
                     }
                     case EDIT: {
-                        nameColor = "0000FF";
+                        nameColor = perforcePreferences.getColorEdit();
                         break;
                     }
                     case OUTDATED: {
-                        nameColor = "FFFF00";
+                        nameColor = perforcePreferences.getColorOutdated();
                         break;
                     }
                 }
@@ -485,6 +489,20 @@ public class PerforceVersioningSystem extends VersioningSystem {
         sb.append(p.isInterceptAdd() ? 't' : 'f');
         sb.append(p.isPrintOutput() ? 't' : 'f');
         sb.append(p.isShowAction() ? 't' : 'f');
+        sb.append(RC_DELIMITER);
+        sb.append(p.getColorAdd());
+        sb.append(RC_DELIMITER);
+        sb.append(p.getColorBase());
+        sb.append(RC_DELIMITER);
+        sb.append(p.getColorDelete());
+        sb.append(RC_DELIMITER);
+        sb.append(p.getColorEdit());
+        sb.append(RC_DELIMITER);
+        sb.append(p.getColorLocal());
+        sb.append(RC_DELIMITER);
+        sb.append(p.getColorOutdated());
+        sb.append(RC_DELIMITER);
+        sb.append(p.getColorUnknown());
         return sb.toString();
     }
 
@@ -495,6 +513,14 @@ public class PerforceVersioningSystem extends VersioningSystem {
         p.setInterceptAdd(s.charAt(2) == 't');
         p.setPrintOutput(s.charAt(3) == 't');
         p.setShowAction(s.charAt(4) == 't');
+        String[] colors = s.split(RC_DELIMITER);
+        p.setColorAdd(colors[1]);
+        p.setColorBase(colors[2]);
+        p.setColorDelete(colors[3]);
+        p.setColorEdit(colors[4]);
+        p.setColorLocal(colors[5]);
+        p.setColorOutdated(colors[6]);
+        p.setColorUnknown(colors[7]);
         return p;
     }
 
@@ -640,7 +666,11 @@ public class PerforceVersioningSystem extends VersioningSystem {
             }
             if (perforcePreferences.isConfirmEdit()) {
                 String[] options = {"Yes", "No"};
-                int res = JOptionPane.showOptionDialog(null, "Are you sure you want to \"p4 edit\" file " + file.getName(), "Edit Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+                String abs = file.getAbsolutePath();
+                if (abs.length() > 60) {
+                    abs = abs.substring(0, 60) + '\n' + abs.substring(60);
+                }
+                int res = JOptionPane.showOptionDialog(null, "Are you sure you want to \"p4 edit\" file \n" + abs, "Edit Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
                 if (res == JOptionPane.NO_OPTION) {
                     return;
                 }
