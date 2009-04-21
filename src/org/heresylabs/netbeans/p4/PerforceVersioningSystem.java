@@ -113,6 +113,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc=" workspaces performance hack ">
+
     private String[] workspaces;
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc=" VersioningSystem implementation ">
@@ -122,6 +123,11 @@ public class PerforceVersioningSystem extends VersioningSystem {
     @Override
     public void getOriginalFile(File workingCopy, File originalFile) {
         // TODO check if p4 can overwrite already existing and if JVM can get another file with same filename
+        // checking for file status, if it is added, none or unkown - no comparision available
+        Status status = fileStatusProvider.getFileStatus(workingCopy);
+        if (status != Status.EDIT && status != Status.OUTDATED) {
+            return;
+        }
         String originalPath;
         try {
             originalPath = originalFile.getCanonicalPath();
@@ -152,6 +158,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc=" connections ">
+
     private List<Connection> connections = new ArrayList<Connection>();
 
     /**
@@ -203,6 +210,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
     }
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc=" VCS logic ">
+
     private PerforcePreferences perforcePreferences;
 
     public PerforcePreferences getPerforcePreferences() {
@@ -264,7 +272,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 SystemAction.get(RefreshAction.class),
                 SystemAction.get(RefreshRecursivelyAction.class),
                 null,
-                new OptionsAction());
+                optionsAction);
     }
 
     public Connection getConnectionForFile(File file) {
@@ -291,8 +299,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
         }
         return null;
     }
+
     private CliWrapper wrapper = new CliWrapper();
     private FileStatusProvider fileStatusProvider = new FileStatusProvider();
+    private final OptionsAction optionsAction = new OptionsAction();
 
     public CliWrapper getWrapper() {
         return wrapper;
@@ -392,7 +402,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
             if (annotationsVisible) {
                 nameBuilder.append("   <font color=\"#999999\">[ ");
                 nameBuilder.append(suffix);
-                if (perforcePreferences.isShowAction()) {
+                if (!status.isUnknown() && perforcePreferences.isShowAction()) {
                     nameBuilder.append(':').append(' ');
                     // TODO add status in other form than this
                     nameBuilder.append(status.toString());
@@ -410,7 +420,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
     }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc=" static util methods ">
+    // <editor-fold defaultstate="collapsed" desc=" static and util methods ">
     /**
      * Sorry NB guys, but "friends only" restriction for Util classes is not right!
      */
@@ -461,6 +471,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
             Logger.getLogger(PerforceVersioningSystem.class.getName()).log(Level.INFO, null, ex);
         }
     }
+
     private static final String RC_DELIMITER = "~=~";
 
     private static String getConnectionAsString(Connection connection) {
@@ -566,6 +577,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
         out.println(m);
         out.flush();
     }
+
     private static final Date currentDate = new Date();
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
@@ -581,6 +593,15 @@ public class PerforceVersioningSystem extends VersioningSystem {
      */
     private static <T> T[] asArray(T... arg) {
         return arg;
+    }
+
+    private int showConfirmation(String message, String filename) {
+        if (filename.length() > 60) {
+            filename = filename.substring(0, 60) + '\n' + filename.substring(60);
+        }
+        String[] options = {"Yes", "No"};
+        int res = JOptionPane.showOptionDialog(null, message + filename, "Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+        return res;
     }
     // </editor-fold>
 
@@ -602,6 +623,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
         public Action[] getActions(VCSContext context, ActionDestination destination) {
             return getPerforceActions(context, destination);
         }
+
     }
 
     private class Interceptor extends VCSInterceptor {
@@ -618,21 +640,26 @@ public class PerforceVersioningSystem extends VersioningSystem {
 
         @Override
         public boolean beforeDelete(File file) {
-            return !fileStatusProvider.getFileStatusForce(file).isLocal();
+            return file.isFile() && !fileStatusProvider.getFileStatusForce(file).isLocal();
         }
 
         @Override
         public void doDelete(File file) throws IOException {
-            int res = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete " + file.getName(), "Delete Confirmation", JOptionPane.YES_NO_OPTION);
+            int res = showConfirmation("Are you sure you want to delete ", file.getAbsolutePath());
             if (res == JOptionPane.NO_OPTION) {
                 return;
             }
             Status status = fileStatusProvider.getFileStatusForce(file);
             if (status.isLocal()) {
                 logWarning(this, file.getName() + " is not revisioned. Should not be deleted by p4nb");
+                return;
             }
             if (status != Status.NONE) {
                 revert(file);
+            }
+            if (status == Status.ADD) {
+                file.delete();
+                return;
             }
             delete(file);
         }
@@ -654,7 +681,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
 
         @Override
         public void afterCreate(File file) {
-            if (perforcePreferences.isInterceptAdd()) {
+            if (file.isFile() && perforcePreferences.isInterceptAdd()) {
                 add(file);
             }
         }
@@ -665,18 +692,14 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 return;
             }
             if (perforcePreferences.isConfirmEdit()) {
-                String[] options = {"Yes", "No"};
-                String abs = file.getAbsolutePath();
-                if (abs.length() > 60) {
-                    abs = abs.substring(0, 60) + '\n' + abs.substring(60);
-                }
-                int res = JOptionPane.showOptionDialog(null, "Are you sure you want to \"p4 edit\" file \n" + abs, "Edit Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+                int res = showConfirmation("Are you sure you want to \"p4 edit\" file \n", file.getAbsolutePath());
                 if (res == JOptionPane.NO_OPTION) {
                     return;
                 }
             }
             edit(file);
         }
+
     }
     // </editor-fold>
 }
