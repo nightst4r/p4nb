@@ -183,11 +183,11 @@ public class FileStatusProvider {
     public Status getFileStatus(File file) {
         Long last = lastCheckMap.get(file);
         if (last == null) {
-            refreshAsync(false, file);
+            refreshAsync(file);
             return Status.UNKNOWN;
         }
         if (System.currentTimeMillis() - last >= REFRESH_TIMEOUT) {
-            refreshAsync(false, file);
+            refreshAsync(file);
         }
         return statusMap.get(file);
     }
@@ -207,19 +207,11 @@ public class FileStatusProvider {
         return s;
     }
 
-    /**
-     * Submit files to asynchronious refresh in background thread.
-     * @param recursively {@code false} to check only specified files, {@code true} to scan folders recuresively.
-     * @param files
-     */
-    public void refreshAsync(boolean recursively, File... files) {
+    public void refreshAsync(File... files) {
         synchronized (filesToRefresh) {
             for (int i = 0; i < files.length; i++) {
                 File file = files[i];
-                if (recursively) {
-                    listFilesRecursively(file, filesToRefresh);
-                }
-                else {
+                if (file.isFile()) {
                     filesToRefresh.add(file);
                 }
             }
@@ -227,16 +219,6 @@ public class FileStatusProvider {
         refreshTask.schedule(300);
     }
 
-    private void listFilesRecursively(File file, Set<File> files) {
-        if (file.isFile()) {
-            files.add(file);
-            return;
-        }
-        File[] f = file.listFiles();
-        for (int i = 0; i < f.length; i++) {
-            listFilesRecursively(f[i], files);
-        }
-    }
     // </editor-fold>
 
     // <editor-fold defaultstate="collapsed" desc=" parsing p4 output ">

@@ -42,18 +42,20 @@ public class PerforcePreferences {
         this.colorOutdated = colorOutdated;
     }
     // </editor-fold>
+
     private boolean caseSensetiveWorkspaces;
     private boolean confirmEdit;
     private boolean interceptAdd;
     private boolean printOutput;
     private boolean showAction;
+    private boolean invalidateOnRefresh;
     private String colorBase = "000000";
     private String colorLocal = "999999";
     private String colorUnknown = "444444";
     private String colorAdd = "008000";
     private String colorDelete = "FF0000";
     private String colorEdit = "0000FF";
-    private String colorOutdated = "FFFF00";
+    private String colorOutdated = "999900";
 
     // <editor-fold defaultstate="collapsed" desc=" getters/setters ">
     public boolean isCaseSensetiveWorkspaces() {
@@ -151,5 +153,14 @@ public class PerforcePreferences {
     public void setColorUnknown(String colorUnknown) {
         this.colorUnknown = colorUnknown;
     }
+
+    public boolean isInvalidateOnRefresh() {
+        return invalidateOnRefresh;
+    }
+
+    public void setInvalidateOnRefresh(boolean invalidateOnRefresh) {
+        this.invalidateOnRefresh = invalidateOnRefresh;
+    }
+
     // </editor-fold>
 }
