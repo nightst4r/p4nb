@@ -41,6 +41,7 @@ import javax.swing.event.ListSelectionListener;
 import org.heresylabs.netbeans.p4.Connection;
 import org.heresylabs.netbeans.p4.PerforcePreferences;
 import org.heresylabs.netbeans.p4.PerforceVersioningSystem;
+import org.netbeans.modules.versioning.spi.VersioningSupport;
 import org.netbeans.spi.options.OptionsPanelController;
 import org.openide.util.HelpCtx;
 import org.openide.util.Lookup;
@@ -58,12 +59,15 @@ public class PerforceOptionsController extends OptionsPanelController implements
     private JCheckBox caseSensetiveWorkspaceBox;
     private JCheckBox printOutputBox;
     private JCheckBox showActionBox;
+    private JCheckBox showAnnotations;
+    private JCheckBox invalidateOnRefreshBox;
     private ConnectionPanel connectionPanel;
     private ColorsPanel colorsPanel;
     private JList connectionsList;
     private ConnectionsListModel listModel;
     private List<Connection> connections;
     private PerforcePreferences preferences;
+    private boolean moved = false;
 
     public PerforceOptionsController() {
         perforceOptionsPanel = createOptionsPanel();
@@ -106,6 +110,8 @@ public class PerforceOptionsController extends OptionsPanelController implements
         caseSensetiveWorkspaceBox = new JCheckBox("Case Sensetive workspaces");
         printOutputBox = new JCheckBox("Print output");
         showActionBox = new JCheckBox("Show Action");
+        showAnnotations = new JCheckBox("Show Annotations (Labels)");
+        invalidateOnRefreshBox = new JCheckBox("Invalidate cache on Refresh");
 
         Box box = Box.createVerticalBox();
         box.setBorder(BorderFactory.createTitledBorder("Prefernces"));
@@ -114,6 +120,7 @@ public class PerforceOptionsController extends OptionsPanelController implements
         box.add(caseSensetiveWorkspaceBox);
         box.add(printOutputBox);
         box.add(showActionBox);
+        box.add(showAnnotations);
 
         colorsPanel = new ColorsPanel();
         colorsPanel.setBorder(BorderFactory.createTitledBorder("Colors"));
@@ -134,6 +141,7 @@ public class PerforceOptionsController extends OptionsPanelController implements
             public void actionPerformed(ActionEvent e) {
                 addConnectionAction();
             }
+
         });
         JButton removeButton = new JButton("Remove");
         removeButton.addActionListener(new ActionListener() {
@@ -141,6 +149,7 @@ public class PerforceOptionsController extends OptionsPanelController implements
             public void actionPerformed(ActionEvent e) {
                 removeConnectionAction();
             }
+
         });
         JButton upButton = new JButton("Up");
         upButton.addActionListener(new ActionListener() {
@@ -148,6 +157,7 @@ public class PerforceOptionsController extends OptionsPanelController implements
             public void actionPerformed(ActionEvent e) {
                 upConnectionAction();
             }
+
         });
         JButton downButton = new JButton("Down");
         downButton.addActionListener(new ActionListener() {
@@ -155,6 +165,7 @@ public class PerforceOptionsController extends OptionsPanelController implements
             public void actionPerformed(ActionEvent e) {
                 downConnectionAction();
             }
+
         });
 
         JPanel gridPanel = new JPanel(new GridLayout(4, 1, 0, 6));
@@ -170,11 +181,12 @@ public class PerforceOptionsController extends OptionsPanelController implements
         box.add(Box.createVerticalGlue());
         return box;
     }
+
     private int selectedRow = -1;
 
     public void valueChanged(ListSelectionEvent e) {
         // saving modifications to previous selected connection:
-        if (selectedRow != -1) {
+        if (selectedRow != -1 && !moved) {
             Connection conn = connections.get(selectedRow);
             connectionPanelToConnection(conn);
         }
@@ -188,6 +200,7 @@ public class PerforceOptionsController extends OptionsPanelController implements
         connectionPanel.userField.setText(conn.getUser());
         connectionPanel.workspaceField.setText(conn.getWorkspacePath());
         connectionPanel.passwordField.setText(conn.getPassword());
+        moved = false;
     }
 
     private void addConnectionAction() {
@@ -209,18 +222,43 @@ public class PerforceOptionsController extends OptionsPanelController implements
     }
 
     private void upConnectionAction() {
-        // TODO implement
-        return;
+        if (connections.size() < 2) {
+            return;
+        }
+        int selected = connectionsList.getSelectedIndex();
+        if (selected == 0) {
+            return;
+        }
+        Connection c = connections.remove(selected);
+        int newIndex = selected - 1;
+        connections.add(newIndex, c);
+        moved = true;
+        connectionsList.setSelectedIndex(newIndex);
+        listModel.fireChanged(newIndex, selected);
     }
 
     private void downConnectionAction() {
-        // TODO impelement
-        return;
+        if (connections.size() < 2) {
+            return;
+        }
+        int selected = connectionsList.getSelectedIndex();
+        int newIndex = selected + 1;
+        if (newIndex == connections.size()) {
+            return;
+        }
+        Connection c = connections.remove(selected);
+        connections.add(newIndex, c);
+        moved = true;
+        connectionsList.setSelectedIndex(newIndex);
+        listModel.fireChanged(selected, newIndex);
     }
 
     private void fireWorkspaceChanged() {
         int index = connectionsList.getSelectedIndex();
-        listModel.fireChanged(index, index);
+        if (index >= 0) {
+            connectionPanelToConnection(connections.get(index));
+            listModel.fireChanged(index, index);
+        }
     }
 
     public void insertUpdate(DocumentEvent e) {
@@ -250,6 +288,8 @@ public class PerforceOptionsController extends OptionsPanelController implements
         caseSensetiveWorkspaceBox.setSelected(preferences.isCaseSensetiveWorkspaces());
         printOutputBox.setSelected(preferences.isPrintOutput());
         showActionBox.setSelected(preferences.isShowAction());
+        showAnnotations.setSelected(VersioningSupport.getPreferences().getBoolean(VersioningSupport.PREF_BOOLEAN_TEXT_ANNOTATIONS_VISIBLE, false));
+        invalidateOnRefreshBox.setSelected(preferences.isInvalidateOnRefresh());
         if (connections.size() > 0) {
             connectionsList.setSelectedIndex(0);
         }
@@ -271,6 +311,7 @@ public class PerforceOptionsController extends OptionsPanelController implements
         preferences.setConfirmEdit(confirmEditBox.isSelected());
         preferences.setPrintOutput(printOutputBox.isSelected());
         preferences.setShowAction(showActionBox.isSelected());
+        preferences.setInvalidateOnRefresh(invalidateOnRefreshBox.isSelected());
 
         int index = connectionsList.getSelectedIndex();
         if (index >= 0) {
@@ -287,6 +328,9 @@ public class PerforceOptionsController extends OptionsPanelController implements
 
         PerforceVersioningSystem.getInstance().setConnections(connections);
         PerforceVersioningSystem.getInstance().setPerforcePreferences(preferences);
+
+        // global IDE option:
+        VersioningSupport.getPreferences().putBoolean(VersioningSupport.PREF_BOOLEAN_TEXT_ANNOTATIONS_VISIBLE, showAnnotations.isSelected());
     }
 
     @Override
@@ -358,5 +402,6 @@ public class PerforceOptionsController extends OptionsPanelController implements
         public void fireChanged(int a, int b) {
             fireContentsChanged(this, a, b);
         }
+
     }
 }

@@ -343,11 +343,11 @@ public class PerforceVersioningSystem extends VersioningSystem {
     }
 
     public void refresh(Set<File> files) {
-        fileStatusProvider.refreshAsync(true, files.toArray(new File[files.size()]));
+        fileStatusProvider.refreshAsync(files.toArray(new File[files.size()]));
     }
 
     public void refresh(File file) {
-        fileStatusProvider.refreshAsync(false, file);
+        fileStatusProvider.refreshAsync(file);
     }
 
     // </editor-fold>
@@ -500,6 +500,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
         sb.append(p.isInterceptAdd() ? 't' : 'f');
         sb.append(p.isPrintOutput() ? 't' : 'f');
         sb.append(p.isShowAction() ? 't' : 'f');
+        sb.append(p.isInvalidateOnRefresh() ? 't' : 'f');
         sb.append(RC_DELIMITER);
         sb.append(p.getColorAdd());
         sb.append(RC_DELIMITER);
@@ -524,6 +525,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
         p.setInterceptAdd(s.charAt(2) == 't');
         p.setPrintOutput(s.charAt(3) == 't');
         p.setShowAction(s.charAt(4) == 't');
+        p.setInvalidateOnRefresh(s.charAt(5) == 't');
         String[] colors = s.split(RC_DELIMITER);
         p.setColorAdd(colors[1]);
         p.setColorBase(colors[2]);
