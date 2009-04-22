@@ -18,7 +18,9 @@
 package org.heresylabs.netbeans.p4.actions;
 
 import java.io.File;
+import org.heresylabs.netbeans.p4.PerforceVersioningSystem;
 import org.netbeans.modules.versioning.spi.VCSContext;
+import org.openide.cookies.SaveCookie;
 import org.openide.nodes.Node;
 
 /**
@@ -35,6 +37,19 @@ public abstract class AbstractSingleNodeAction extends AbstractAction {
 
     @Override
     protected final void performAction(Node[] activatedNodes) {
+        // TODO check if we are saving correct files:
+        for (int i = 0; i < activatedNodes.length; i++) {
+            Node node = activatedNodes[i];
+            SaveCookie save = node.getCookie(SaveCookie.class);
+            if (save != null) {
+                try {
+                    save.save();
+                }
+                catch (Exception e) {
+                    PerforceVersioningSystem.logError(this, e);
+                }
+            }
+        }
         performAction(VCSContext.forNodes(activatedNodes).getRootFiles().iterator().next());
     }
 

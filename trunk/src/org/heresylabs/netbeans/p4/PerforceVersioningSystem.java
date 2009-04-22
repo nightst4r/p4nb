@@ -235,7 +235,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
      * @see org.netbeans.modules.versioning.spi.VCSAnnotator#getActions(org.netbeans.modules.versioning.spi.VCSContext, org.netbeans.modules.versioning.spi.VCSAnnotator.ActionDestination)
      */
     private Action[] getPerforceActions(VCSContext context, ActionDestination destination) {
-        // TODO use SystemAction.get() as in SVN
         if (destination == ActionDestination.PopupMenu) {
             return asArray(
                     SystemAction.get(DiffAction.class),

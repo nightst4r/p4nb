@@ -208,11 +208,19 @@ public class FileStatusProvider {
     }
 
     public void refreshAsync(File... files) {
+        boolean invalidate = PerforceVersioningSystem.getInstance().getPerforcePreferences().isInvalidateOnRefresh();
         synchronized (filesToRefresh) {
             for (int i = 0; i < files.length; i++) {
                 File file = files[i];
                 if (file.isFile()) {
                     filesToRefresh.add(file);
+                }
+                /*
+                 * TODO we are removing last updated timestamp from cache to get UNKNOWN statuses for refreshing files
+                 * but if status is unknown - it will invoke refresh once more
+                 */
+                if (invalidate) {
+                    lastCheckMap.remove(file);
                 }
             }
         }
