@@ -402,18 +402,17 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 nameBuilder.append("   <font color=\"#999999\">[ ");
                 nameBuilder.append(suffix);
                 if (perforcePreferences.isShowAction()) {
-                    nameBuilder.append(' ').append(':').append(' ');
                     switch (status) {
                         case ADD: {
-                            nameBuilder.append("Add");
+                            nameBuilder.append(" : Add");
                             break;
                         }
                         case EDIT: {
-                            nameBuilder.append("Edit");
+                            nameBuilder.append(" : Edit");
                             break;
                         }
                         case DELETE: {
-                            nameBuilder.append("Deleted");
+                            nameBuilder.append(" : Deleted");
                             break;
                         }
                         default: break;
