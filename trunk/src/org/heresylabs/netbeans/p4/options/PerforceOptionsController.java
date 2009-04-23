@@ -185,6 +185,9 @@ public class PerforceOptionsController extends OptionsPanelController implements
     private int selectedRow = -1;
 
     public void valueChanged(ListSelectionEvent e) {
+        if (e.getValueIsAdjusting()) {
+            return;
+        }
         // saving modifications to previous selected connection:
         if (selectedRow != -1 && !moved) {
             Connection conn = connections.get(selectedRow);
@@ -195,11 +198,11 @@ public class PerforceOptionsController extends OptionsPanelController implements
             return;
         }
         Connection conn = connections.get(selectedRow);
+        connectionPanel.passwordField.setText(conn.getPassword());
         connectionPanel.clientField.setText(conn.getClient());
         connectionPanel.serverField.setText(conn.getServer());
         connectionPanel.userField.setText(conn.getUser());
         connectionPanel.workspaceField.setText(conn.getWorkspacePath());
-        connectionPanel.passwordField.setText(conn.getPassword());
         moved = false;
     }
 

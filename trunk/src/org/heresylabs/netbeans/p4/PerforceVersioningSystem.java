@@ -401,9 +401,23 @@ public class PerforceVersioningSystem extends VersioningSystem {
             if (annotationsVisible) {
                 nameBuilder.append("   <font color=\"#999999\">[ ");
                 nameBuilder.append(suffix);
-                if (!status.isUnknown() && perforcePreferences.isShowAction()) {
-                    nameBuilder.append(':').append(' ');
-                    // TODO add status in other form than this
+                if (perforcePreferences.isShowAction()) {
+                    nameBuilder.append(' ').append(':').append(' ');
+                    switch (status) {
+                        case ADD: {
+                            nameBuilder.append("Add");
+                            break;
+                        }
+                        case EDIT: {
+                            nameBuilder.append("Edit");
+                            break;
+                        }
+                        case DELETE: {
+                            nameBuilder.append("Deleted");
+                            break;
+                        }
+                        default: break;
+                    }
                     nameBuilder.append(status.toString());
                 }
                 nameBuilder.append(" ]</font>");
@@ -551,7 +565,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
     public static void print(String message, boolean error) {
 
         // checking for printing preferences:
-        if (!getInstance().getPerforcePreferences().isPrintOutput()) {
+        if (!getInstance().perforcePreferences.isPrintOutput()) {
             return;
         }
 
