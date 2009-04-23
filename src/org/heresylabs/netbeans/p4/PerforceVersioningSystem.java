@@ -418,7 +418,6 @@ public class PerforceVersioningSystem extends VersioningSystem {
                         }
                         default: break;
                     }
-                    nameBuilder.append(status.toString());
                 }
                 nameBuilder.append(" ]</font>");
             }
