@@ -20,6 +20,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.File;
 import java.io.StringReader;
+import org.heresylabs.netbeans.p4.FileStatusProvider.Status;
 import org.heresylabs.netbeans.p4.PerforceVersioningSystem;
 import org.netbeans.api.diff.Diff;
 import org.netbeans.api.diff.DiffView;
@@ -96,6 +97,17 @@ public class DiffAction extends AbstractSingleNodeAction {
         return StreamSource.createSource(file.getName(), title, mime, new StringReader(content));
     }
 
+    @Override
+    protected boolean statusEnabled(Status status) {
+        switch (status) {
+            case EDIT:
+            case OUTDATED:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     private static class DiffTopComponent extends TopComponent {
 
         public DiffTopComponent(Component panel) {
@@ -111,5 +123,6 @@ public class DiffAction extends AbstractSingleNodeAction {
         protected String preferredID() {
             return "Perforce Diff";
         }
+
     }
 }

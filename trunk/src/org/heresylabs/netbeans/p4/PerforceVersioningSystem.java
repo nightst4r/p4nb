@@ -31,18 +31,25 @@ import java.util.prefs.Preferences;
 import javax.swing.Action;
 import javax.swing.JOptionPane;
 import org.heresylabs.netbeans.p4.FileStatusProvider.Status;
+import org.heresylabs.netbeans.p4.actions.AddAction;
+import org.heresylabs.netbeans.p4.actions.DeleteAction;
 import org.heresylabs.netbeans.p4.actions.DiffAction;
 import org.heresylabs.netbeans.p4.actions.DiffExternalAction;
-import org.heresylabs.netbeans.p4.actions.FileAction;
+import org.heresylabs.netbeans.p4.actions.EditAction;
 import org.heresylabs.netbeans.p4.actions.OptionsAction;
 import org.heresylabs.netbeans.p4.actions.RefreshAction;
 import org.heresylabs.netbeans.p4.actions.RefreshRecursivelyAction;
+import org.heresylabs.netbeans.p4.actions.RevertAction;
+import org.heresylabs.netbeans.p4.actions.SyncAction;
+import org.heresylabs.netbeans.p4.actions.SyncForceAction;
 import org.netbeans.modules.versioning.spi.VCSAnnotator;
 import org.netbeans.modules.versioning.spi.VCSAnnotator.ActionDestination;
 import org.netbeans.modules.versioning.spi.VCSContext;
 import org.netbeans.modules.versioning.spi.VCSInterceptor;
 import org.netbeans.modules.versioning.spi.VersioningSupport;
 import org.netbeans.modules.versioning.spi.VersioningSystem;
+import org.openide.cookies.SaveCookie;
+import org.openide.nodes.Node;
 import org.openide.util.NbPreferences;
 import org.openide.util.actions.SystemAction;
 import org.openide.windows.IOProvider;
@@ -240,15 +247,15 @@ public class PerforceVersioningSystem extends VersioningSystem {
                     SystemAction.get(DiffAction.class),
                     SystemAction.get(DiffExternalAction.class),
                     null,
-                    new FileAction(context, "add", "Add"),
-                    new FileAction(context, "delete", "Delete"),
+                    SystemAction.get(AddAction.class),
+                    SystemAction.get(DeleteAction.class),
                     null,
-                    new FileAction(context, "revert", "Revert"),
+                    SystemAction.get(RevertAction.class),
                     null,
-                    new FileAction(context, "edit", "Edit"),
+                    SystemAction.get(EditAction.class),
                     null,
-                    new FileAction(context, "sync", "Sync"),
-                    new FileAction(context, "sync -f", "Sync Force"),
+                    SystemAction.get(SyncAction.class),
+                    SystemAction.get(SyncForceAction.class),
                     null,
                     SystemAction.get(RefreshAction.class),
                     SystemAction.get(RefreshRecursivelyAction.class));
@@ -258,15 +265,15 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 SystemAction.get(DiffAction.class),
                 SystemAction.get(DiffExternalAction.class),
                 null,
-                new FileAction(context, "add", "Add"),
-                new FileAction(context, "delete", "Delete"),
+                SystemAction.get(AddAction.class),
+                SystemAction.get(DeleteAction.class),
                 null,
-                new FileAction(context, "revert", "Revert"),
+                SystemAction.get(RevertAction.class),
                 null,
-                new FileAction(context, "edit", "Edit"),
+                SystemAction.get(EditAction.class),
                 null,
-                new FileAction(context, "sync", "Sync"),
-                new FileAction(context, "sync -f", "Sync Force"),
+                SystemAction.get(SyncAction.class),
+                SystemAction.get(SyncForceAction.class),
                 null,
                 SystemAction.get(RefreshAction.class),
                 SystemAction.get(RefreshRecursivelyAction.class),
@@ -349,6 +356,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
         fileStatusProvider.refreshAsync(file);
     }
 
+    public Status getFileStatus(File file) {
+        return fileStatusProvider.getFileStatus(file);
+    }
+
     // </editor-fold>
     // <editor-fold defaultstate="collapsed" desc=" file statuses ">
     private String annotatePerforceName(String name, VCSContext context) {
@@ -415,7 +426,8 @@ public class PerforceVersioningSystem extends VersioningSystem {
                             nameBuilder.append(" : Deleted");
                             break;
                         }
-                        default: break;
+                        default:
+                            break;
                     }
                 }
                 nameBuilder.append(" ]</font>");
@@ -548,6 +560,21 @@ public class PerforceVersioningSystem extends VersioningSystem {
         return p;
     }
 
+    public static void saveNodes(Node[] nodes) {
+        for (int i = 0; i < nodes.length; i++) {
+            Node node = nodes[i];
+            SaveCookie save = node.getCookie(SaveCookie.class);
+            if (save != null) {
+                try {
+                    save.save();
+                }
+                catch (Exception e) {
+                    logError(PerforceVersioningSystem.class, e);
+                }
+            }
+        }
+    }
+
     public static void logError(Object caller, Throwable e) {
         Logger.getLogger(caller.getClass().getName()).log(Level.SEVERE, e.getMessage(), e);
     }
@@ -563,7 +590,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
     public static void print(String message, boolean error) {
 
         // checking for printing preferences:
-        if (!getInstance().perforcePreferences.isPrintOutput()) {
+        if (!error && !getInstance().perforcePreferences.isPrintOutput()) {
             return;
         }
 

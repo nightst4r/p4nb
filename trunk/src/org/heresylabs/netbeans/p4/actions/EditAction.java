@@ -18,28 +18,25 @@ package org.heresylabs.netbeans.p4.actions;
 
 import java.io.File;
 import org.heresylabs.netbeans.p4.FileStatusProvider.Status;
-import org.heresylabs.netbeans.p4.PerforceVersioningSystem;
 
 /**
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
-public class DiffExternalAction extends AbstractSingleNodeAction {
+public class EditAction extends AbstractSingleNodeAction {
 
-    public DiffExternalAction() {
-        super("Diff External");
+    public EditAction() {
+        super("Edit");
     }
 
     @Override
     protected void performAction(File file) {
-        PerforceVersioningSystem.getInstance().p4merge(file);
+        execute("edit", file);
     }
 
-    @Override
     protected boolean statusEnabled(Status status) {
-        // TODO same method in DiffAction
         switch (status) {
-            case EDIT:
+            case NONE:
             case OUTDATED:
                 return true;
             default:

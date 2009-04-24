@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with p4nb.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.heresylabs.netbeans.p4.actions;
 
 import java.io.File;
@@ -28,32 +27,38 @@ import org.openide.nodes.Node;
  *
  * @author Aekold Helbrass <Helbrass@gmail.com>
  */
-public abstract class AbstractSingleNodeAction extends AbstractAction {
+public class RevertAction extends AbstractAction {
 
-    public AbstractSingleNodeAction(String name) {
-        super(name);
+    public RevertAction() {
+        super("Revert");
     }
 
-    protected abstract void performAction(File file);
-    protected abstract boolean statusEnabled(Status status);
-
     @Override
-    protected final void performAction(Node[] activatedNodes) {
+    protected void performAction(Node[] activatedNodes) {
         PerforceVersioningSystem.saveNodes(activatedNodes);
-        performAction(VCSContext.forNodes(activatedNodes).getRootFiles().iterator().next());
+        File file = VCSContext.forNodes(activatedNodes).getRootFiles().iterator().next();
+        execute("revert", file);
     }
 
     @Override
-    protected final boolean enable(Node[] activatedNodes) {
+    protected boolean enable(Node[] activatedNodes) {
+        // TODO same method exists in AbstractSingleNodeAction
         Set<File> files = VCSContext.forNodes(activatedNodes).getRootFiles();
-        if (files.size() != 1) {
+        if (files.size() > 1) {
             return false;
         }
         File file = files.iterator().next();
         if (file.isDirectory()) {
             return false;
         }
-        return statusEnabled(PerforceVersioningSystem.getInstance().getFileStatus(file));
+        Status status = PerforceVersioningSystem.getInstance().getFileStatus(file);
+        switch (status) {
+            case ADD:
+            case EDIT:
+                return true;
+            default:
+                return false;
+        }
     }
 
 }
