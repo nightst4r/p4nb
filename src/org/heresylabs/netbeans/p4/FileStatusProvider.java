@@ -72,6 +72,12 @@ public class FileStatusProvider {
      */
     private void refresh(File file) {
         Proc proc = PerforceVersioningSystem.getInstance().getWrapper().execute("fstat", file);
+        if (proc == null) {
+            return;
+        }
+        if (proc.getExitValue() != 0) {
+            PerforceVersioningSystem.print(proc.getErrors(), true);
+        }
         String output = proc.getOutput();
         // TODO return boolean to identify if status changed from previous
 

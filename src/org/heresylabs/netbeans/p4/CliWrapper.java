@@ -29,7 +29,9 @@ import java.io.InputStream;
 public class CliWrapper {
 
     /**
-     * Execute p4 with given command on given file.
+     * Execute p4 with given command on given file.<br/>
+     * If {@code file} is file - it's name will be passed to p4 with {@code file.getParentFile()} as working dir.<br/>
+     * If {@code file} is folder - it's name + {@code "/..."} will be passed to p4.
      * @param command p4 command to execute
      * @param file target argument for p4 command
      * @return Proc with output and error streams of p4 execution,
@@ -51,6 +53,9 @@ public class CliWrapper {
         sb.append(" -P ").append(connection.getPassword());
         sb.append(' ').append(command).append(' ');
         sb.append(file.getName());
+        if (file.isDirectory()) {
+            sb.append("/...");
+        }
         return procExecute(sb.toString(), file.getParentFile());
     }
 

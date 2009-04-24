@@ -16,6 +16,9 @@
  */
 package org.heresylabs.netbeans.p4.actions;
 
+import java.io.File;
+import org.heresylabs.netbeans.p4.PerforceVersioningSystem;
+import org.heresylabs.netbeans.p4.Proc;
 import org.openide.nodes.Node;
 import org.openide.util.HelpCtx;
 import org.openide.util.actions.NodeAction;
@@ -37,6 +40,14 @@ public abstract class AbstractAction extends NodeAction {
 
     @Override
     abstract protected boolean enable(Node[] activatedNodes);
+
+    protected void execute(String command, File file) {
+        Proc proc = PerforceVersioningSystem.getInstance().getWrapper().execute(command, file);
+        if (proc.getExitValue() != 0) {
+            PerforceVersioningSystem.logWarning(this, "Bad exitValue of process: " + proc.getErrors());
+        }
+        PerforceVersioningSystem.getInstance().refresh(file);
+    }
 
     @Override
     public final String getName() {
