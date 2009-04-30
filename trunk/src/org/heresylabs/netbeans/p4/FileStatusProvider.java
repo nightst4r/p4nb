@@ -76,7 +76,9 @@ public class FileStatusProvider {
             return;
         }
         if (proc.getExitValue() != 0) {
+            // if there was error - we should not set status to LOCAL or something, leave it UNKNOWN or previous
             PerforceVersioningSystem.print(proc.getErrors(), true);
+            return;
         }
         String output = proc.getOutput();
         // TODO return boolean to identify if status changed from previous

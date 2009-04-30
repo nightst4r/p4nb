@@ -38,6 +38,9 @@ public class CliWrapper {
      * or null if there was no connection or some exception happened.
      */
     public Proc execute(String command, File file) {
+        if (file == null || !file.exists()) {
+            return null;
+        }
         Connection connection = PerforceVersioningSystem.getInstance().getConnectionForFile(file);
         if (connection == null) {
             // TODO better open connection configuration dialog here
@@ -47,10 +50,22 @@ public class CliWrapper {
 
         StringBuilder sb = new StringBuilder();
         sb.append("p4");
-        sb.append(" -u ").append(connection.getUser());
-        sb.append(" -c ").append(connection.getClient());
-        sb.append(" -p ").append(connection.getServer());
-        sb.append(" -P ").append(connection.getPassword());
+        String user = connection.getUser();
+        if (user != null && user.length() > 0) {
+            sb.append(" -u ").append(connection.getUser());
+        }
+        String client = connection.getClient();
+        if (client != null && client.length() > 0) {
+            sb.append(" -c ").append(connection.getClient());
+        }
+        String server = connection.getServer();
+        if (server != null && server.length() > 0) {
+            sb.append(" -p ").append(connection.getServer());
+        }
+        String password = connection.getPassword();
+        if (password != null && password.length() > 0) {
+            sb.append(" -P ").append(connection.getPassword());
+        }
         sb.append(' ').append(command).append(' ');
         sb.append(file.getName());
         if (file.isDirectory()) {
@@ -98,4 +113,5 @@ public class CliWrapper {
         } while ((read = in.read(buffer)) >= 0);
         return out.toString();
     }
+
 }

@@ -43,6 +43,9 @@ public abstract class AbstractAction extends NodeAction {
 
     protected void execute(String command, File file) {
         Proc proc = PerforceVersioningSystem.getInstance().getWrapper().execute(command, file);
+        if (proc == null) {
+            return;
+        }
         if (proc.getExitValue() != 0) {
             PerforceVersioningSystem.logWarning(this, "Bad exitValue of process: " + proc.getErrors());
         }
