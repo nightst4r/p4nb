@@ -1,4 +1,2 @@
-- implement all actions based on NodeAction
-- revert on folder with additional question
-- add on folder with additional question
-- background long operations with cancelable (as Subversion)
+- additional check for local files
+- setting for status cache timeout

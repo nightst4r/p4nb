@@ -94,7 +94,7 @@ public class DiffAction extends AbstractSingleNodeAction {
             title = output.substring(0, lineEnd);
             content = output.substring(lineEnd);
         }
-        return StreamSource.createSource(file.getName(), title, mime, new StringReader(content));
+        return StreamSource.createSource(name, title, mime, new StringReader(content));
     }
 
     @Override

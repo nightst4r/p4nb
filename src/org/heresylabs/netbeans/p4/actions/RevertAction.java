@@ -44,7 +44,7 @@ public class RevertAction extends AbstractAction {
     protected boolean enable(Node[] activatedNodes) {
         // TODO same method exists in AbstractSingleNodeAction
         Set<File> files = VCSContext.forNodes(activatedNodes).getRootFiles();
-        if (files.size() > 1) {
+        if (files.size() != 1) {
             return false;
         }
         File file = files.iterator().next();
