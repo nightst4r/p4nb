@@ -215,6 +215,10 @@ public class FileStatusProvider {
         return s;
     }
 
+    /**
+     * Request to refresh status of files in background thread.
+     * @param files files who requested status refresh
+     */
     public void refreshAsync(File... files) {
         boolean invalidate = PerforceVersioningSystem.getInstance().getPerforcePreferences().isInvalidateOnRefresh();
         synchronized (filesToRefresh) {

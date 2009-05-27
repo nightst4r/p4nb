@@ -281,6 +281,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 optionsAction);
     }
 
+    /**
+     * Find connection for given file. This method allows user to work with multiple workspaces, returning connection which workspace
+     * includes specified file.
+     */
     public Connection getConnectionForFile(File file) {
         if (file == null) {
             return null;
@@ -310,6 +314,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
     private FileStatusProvider fileStatusProvider = new FileStatusProvider();
     private final OptionsAction optionsAction = new OptionsAction();
 
+    /**
+     * @return wrapper class for command-line p4
+     */
     public CliWrapper getWrapper() {
         return wrapper;
     }
@@ -348,14 +355,28 @@ public class PerforceVersioningSystem extends VersioningSystem {
         }
     }
 
+    /**
+     * Send set of files to background status refresh
+     * @param files files to refresh
+     */
     public void refresh(Set<File> files) {
         fileStatusProvider.refreshAsync(files.toArray(new File[files.size()]));
     }
 
+    /**
+     * Send file to background refresh.
+     * @param file file to refresh.
+     */
     public void refresh(File file) {
         fileStatusProvider.refreshAsync(file);
     }
 
+    /**
+     * Returns status of file from cache. If status was not found - file will be sent to background refresh and {@code UNKNOWN} status will
+     * be returned.
+     * @param file
+     * @return {@code UNKNOWN} if status was not found in cache, valid status otherwise.
+     */
     public Status getFileStatus(File file) {
         return fileStatusProvider.getFileStatus(file);
     }
@@ -437,6 +458,12 @@ public class PerforceVersioningSystem extends VersioningSystem {
         return name;
     }
 
+    /**
+     * Just invoking protected method for outer classes.
+     * @param files
+     * @see #fireStatusChanged(java.io.File)
+     * @see #fireStatusChanged(java.util.Set)
+     */
     public void fireFilesRefreshed(Set<File> files) {
         fireStatusChanged(files);
         //fireAnnotationsChanged(f);
