@@ -17,11 +17,20 @@
 package org.heresylabs.netbeans.p4.actions;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.io.File;
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
 import org.heresylabs.netbeans.p4.FileStatusProvider.Status;
 import org.heresylabs.netbeans.p4.PerforceVersioningSystem;
+import org.heresylabs.netbeans.p4.Proc;
 import org.netbeans.api.diff.Diff;
 import org.netbeans.api.diff.DiffView;
 import org.netbeans.api.diff.StreamSource;
@@ -36,6 +45,8 @@ import org.openide.windows.TopComponent;
  */
 public class DiffAction extends AbstractSingleNodeAction {
 
+    private static final String[] COLUMNS = {"Revision", "Changelist", "Date Submitted", "Submitted By", "Description"};
+
     public DiffAction() {
         super("Diff");
     }
@@ -46,11 +57,31 @@ public class DiffAction extends AbstractSingleNodeAction {
     }
 
     private void showDiff(File file) {
-        DiffTopComponent diffTopComponent = new DiffTopComponent(createDiffView(file));
+        DiffTopComponent diffTopComponent = new DiffTopComponent(createDiffView(file), getFileRevisions(file));
         diffTopComponent.setName(file.getAbsolutePath());
         diffTopComponent.setDisplayName(file.getName());
         diffTopComponent.open();
         diffTopComponent.requestActive();
+    }
+
+    private List<Revision> getFileRevisions(File file) {
+        Proc revisionProc = PerforceVersioningSystem.getInstance().getWrapper().execute("filelog -t", file);
+        if (revisionProc == null || revisionProc.getExitValue() != 0) {
+            PerforceVersioningSystem.print(revisionProc.getErrors(), true);
+            return Collections.emptyList();
+        }
+        return parseRevisions(revisionProc.getOutput());
+    }
+
+    private List<Revision> parseRevisions(String output) {
+        Pattern pattern = Pattern.compile("... #(\\d+) .+ (\\d+).+on (.+) by (.+)@.+'(.+)'");
+        Matcher matcher = pattern.matcher(output);
+        List<Revision> result = new ArrayList<Revision>();
+        while (matcher.find()) {
+            Revision r = new Revision(matcher.group(1), matcher.group(2), matcher.group(3), matcher.group(4), matcher.group(5));
+            result.add(r);
+        }
+        return result;
     }
 
     private DiffView createDiffView(File file) {
@@ -81,6 +112,10 @@ public class DiffAction extends AbstractSingleNodeAction {
     }
 
     private StreamSource createRemoteStreamSource(File file, String name, String mime) {
+        Proc printProc = PerforceVersioningSystem.getInstance().getWrapper().execute("print", file);
+        if (printProc == null || printProc.getExitValue() != 0) {
+            return StreamSource.createSource(name, name, mime, new StringReader(printProc.getErrors()));
+        }
         String output = PerforceVersioningSystem.getInstance().getWrapper().execute("print", file).getOutput();
         int lineEnd = output.indexOf('\n');
         String content;
@@ -99,6 +134,8 @@ public class DiffAction extends AbstractSingleNodeAction {
 
     @Override
     protected boolean statusEnabled(Status status) {
+        return true;
+        /*
         switch (status) {
             case EDIT:
             case OUTDATED:
@@ -106,22 +143,141 @@ public class DiffAction extends AbstractSingleNodeAction {
             default:
                 return false;
         }
+         */
     }
 
     private static class DiffTopComponent extends TopComponent {
 
-        public DiffTopComponent(Component panel) {
-            setLayout(new BorderLayout());
-            add(panel, BorderLayout.CENTER);
-        }
+        public DiffTopComponent(DiffView diffView, List<Revision> revisions) {
+            RevisionTableModel tableModel = new RevisionTableModel(revisions);
+            JTable table = new JTable(tableModel);
 
-        public DiffTopComponent(DiffView diffView) {
-            this(diffView.getComponent());
+            JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+            splitPane.setTopComponent(new JScrollPane(table));
+            splitPane.setBottomComponent(diffView.getComponent());
+            splitPane.setOneTouchExpandable(true);
+            splitPane.setResizeWeight(0.2);
+
+            setLayout(new BorderLayout());
+            add(splitPane, BorderLayout.CENTER);
         }
 
         @Override
         protected String preferredID() {
             return "Perforce Diff";
+        }
+
+    }
+
+    private static class RevisionTableModel extends AbstractTableModel {
+
+        private List<Revision> list;
+
+        public RevisionTableModel(List<Revision> list) {
+            this.list = list;
+        }
+
+        public int getRowCount() {
+            return list.size();
+        }
+
+        public int getColumnCount() {
+            return COLUMNS.length;
+        }
+
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            return String.class;
+        }
+
+        @Override
+        public String getColumnName(int column) {
+            return COLUMNS[column];
+        }
+
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            Revision r = list.get(rowIndex);
+            switch (columnIndex) {
+                case 0:
+                    return r.getRevision();
+                case 1:
+                    return r.getChangelist();
+                case 2:
+                    return r.getDateSubmitted();
+                case 3:
+                    return r.getSubmittedBy();
+                case 4:
+                    return r.getDescription();
+
+            }
+            return null;
+        }
+
+    }
+
+    public static class Revision {
+
+        private String revision;
+        private String changelist;
+        private String dateSubmitted;
+        private String submittedBy;
+        private String description;
+
+        public Revision(String revision, String changelist, String dateSubmitted, String submittedBy, String description) {
+            this.revision = revision;
+            this.changelist = changelist;
+            this.dateSubmitted = dateSubmitted;
+            this.submittedBy = submittedBy;
+            this.description = description;
+        }
+
+        public String getChangelist() {
+            return changelist;
+        }
+
+        public void setChangelist(String changelist) {
+            this.changelist = changelist;
+        }
+
+        public String getDateSubmitted() {
+            return dateSubmitted;
+        }
+
+        public void setDateSubmitted(String dateSubmitted) {
+            this.dateSubmitted = dateSubmitted;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getRevision() {
+            return revision;
+        }
+
+        public void setRevision(String revision) {
+            this.revision = revision;
+        }
+
+        public String getSubmittedBy() {
+            return submittedBy;
+        }
+
+        public void setSubmittedBy(String submittedBy) {
+            this.submittedBy = submittedBy;
+        }
+
+        @Override
+        public String toString() {
+            return "rev: " + revision +
+                    " changelist: " + changelist +
+                    " date: " + dateSubmitted +
+                    " by: " + submittedBy +
+                    " desc: " + description;
         }
 
     }
