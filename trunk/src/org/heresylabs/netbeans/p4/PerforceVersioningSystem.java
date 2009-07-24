@@ -17,7 +17,11 @@
 package org.heresylabs.netbeans.p4;
 
 import java.awt.Image;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -733,12 +737,54 @@ public class PerforceVersioningSystem extends VersioningSystem {
 
         @Override
         public boolean beforeMove(File from, File to) {
-            return super.beforeMove(from, to);
+            // for files only now:
+            if (from.isFile()) {
+                return !fileStatusProvider.getFileStatusForce(from).isLocal();
+            }
+            return false;
         }
 
         @Override
         public void doMove(File from, File to) throws IOException {
-            super.doMove(from, to);
+            int res = showConfirmation("File will be moved in p4, are you sure to move ", from.getAbsolutePath());
+            if (res == JOptionPane.NO_OPTION) {
+                return;
+            }
+            Status status = fileStatusProvider.getFileStatusForce(from);
+            if (status.isLocal()) {
+                logWarning(this, from.getName() + " is not revisioned. Should not be deleted by p4nb");
+                return;
+            }
+            // TODO may be sync file before move operation if it's outdated
+            // creating possibly missing folders:
+            to.getParentFile().mkdirs();
+            // we can't send delete command because file will be deleted and move operation will not be possible
+            // we have to copy file:
+            // TODO possible IOException, check how will NetBeans work with it
+            BufferedInputStream in = new BufferedInputStream(new FileInputStream(from));
+            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(to));
+            byte[] buffer = new byte[8192];
+            int read = 0;
+            while ((read = in.read(buffer)) >= 0) {
+                out.write(buffer, 0, read);
+            }
+            in.close();
+            out.flush();
+            out.close();
+            // reverting file status only after copy operation completed because file could be edited or added:
+            if (status != Status.NONE) {
+                revert(from);
+            }
+            // now we have a copy of file and can delete original:
+            if (status != Status.ADD) {
+                delete(from);
+            }
+            else {
+                // if file had "add" status - it will be local after reverting, we'll delete it manually:
+                from.delete();
+            }
+            // and add the target:
+            add(to);
         }
 
         @Override
