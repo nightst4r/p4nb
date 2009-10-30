@@ -42,7 +42,7 @@ public abstract class AbstractAction extends NodeAction {
     abstract protected boolean enable(Node[] activatedNodes);
 
     protected void execute(String command, File file) {
-        Proc proc = PerforceVersioningSystem.getInstance().getWrapper().execute(command, file);
+        Proc proc = PerforceVersioningSystem.getInstance().getWrapper().execute(file, command);
         if (proc == null) {
             return;
         }
