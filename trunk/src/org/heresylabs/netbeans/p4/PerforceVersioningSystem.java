@@ -692,8 +692,11 @@ public class PerforceVersioningSystem extends VersioningSystem {
              * TODO find the best way to implement this option for perforce:
              * - in default implementation "intercept edit" option will not be used
              * - if return true and user will say "no" - editing will be possible, but saving will not.
+             *
+             * cf. clearcase/src/org/netbeans/modules/clearcase/ClearcaseInterceptor.java that
+             * simply returns true as well.
              */
-            return super.isMutable(file);
+            return true;
         }
 
         @Override
