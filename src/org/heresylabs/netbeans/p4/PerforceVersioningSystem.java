@@ -146,7 +146,7 @@ public class PerforceVersioningSystem extends VersioningSystem {
         catch (Exception e) {
             originalPath = originalFile.getAbsolutePath();
         }
-        wrapper.execute("print -o \"" + originalPath + "\" -q", workingCopy);
+        wrapper.execute(workingCopy, "print", "-o", originalPath, "-q");
     }
 
     @Override
@@ -326,22 +326,22 @@ public class PerforceVersioningSystem extends VersioningSystem {
     }
 
     private void edit(File file) {
-        wrapper.execute("edit", file);
+        wrapper.execute(file, "edit");
         refresh(file);
     }
 
     private void add(File file) {
-        wrapper.execute("add", file);
+        wrapper.execute(file, "add");
         refresh(file);
     }
 
     private void delete(File file) {
-        wrapper.execute("delete", file);
+        wrapper.execute(file, "delete");
         refresh(file);
     }
 
     private void revert(File file) {
-        wrapper.execute("revert", file);
+        wrapper.execute(file, "revert");
         refresh(file);
     }
 
@@ -614,30 +614,11 @@ public class PerforceVersioningSystem extends VersioningSystem {
         Logger.getLogger(caller.getClass().getName()).log(Level.WARNING, warning);
     }
 
-    public static void print(String message) {
-        print(message, false);
-    }
-
-    public static void print(String message, boolean error) {
+    public static void print(boolean error, String... messageArgs) {
 
         // checking for printing preferences:
         if (!error && !getInstance().perforcePreferences.isPrintOutput()) {
             return;
-        }
-
-        String m;
-        int passFlagIndex = message.indexOf(" -P ");
-        if (passFlagIndex >= 0) {
-            int passIndex = passFlagIndex + 4;
-            int spaceIndex = message.indexOf(' ', passIndex);
-            StringBuilder sb = new StringBuilder(message.length());
-            sb.append(message, 0, passIndex);
-            sb.append("********");
-            sb.append(message, spaceIndex, message.length());
-            m = sb.toString();
-        }
-        else {
-            m = message;
         }
 
         InputOutput io = IOProvider.getDefault().getIO("Perforce", false);
@@ -645,7 +626,13 @@ public class PerforceVersioningSystem extends VersioningSystem {
         out.print('[');
         out.print(getTime());
         out.print("] ");
-        out.println(m);
+        boolean isPasswd = false;
+        for (String av : messageArgs) {
+          out.print(isPasswd ? "****" : av);
+          out.print(' ');
+          isPasswd = "-P".equals(av);
+        }
+        out.println();
         out.flush();
     }
 

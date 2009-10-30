@@ -43,7 +43,7 @@ public class SyncAction extends AbstractAction {
         CliWrapper wrapper = PerforceVersioningSystem.getInstance().getWrapper();
         Set<File> files = VCSContext.forNodes(activatedNodes).getRootFiles();
         for (File file : files) {
-            wrapper.execute(getCommand(), file);
+            wrapper.execute(file, getCommand());
         }
         PerforceVersioningSystem.getInstance().refresh(files);
     }

@@ -71,13 +71,13 @@ public class FileStatusProvider {
      * @param file
      */
     private void refresh(File file) {
-        Proc proc = PerforceVersioningSystem.getInstance().getWrapper().execute("fstat", file);
+        Proc proc = PerforceVersioningSystem.getInstance().getWrapper().execute(file, "fstat");
         if (proc == null) {
             return;
         }
         if (proc.getExitValue() != 0) {
             // if there was error - we should not set status to LOCAL or something, leave it UNKNOWN or previous
-            PerforceVersioningSystem.print(proc.getErrors(), true);
+            PerforceVersioningSystem.print(true, proc.getErrors());
             return;
         }
         String output = proc.getOutput();

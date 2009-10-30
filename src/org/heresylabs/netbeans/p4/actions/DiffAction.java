@@ -65,9 +65,9 @@ public class DiffAction extends AbstractSingleNodeAction {
     }
 
     private List<Revision> getFileRevisions(File file) {
-        Proc revisionProc = PerforceVersioningSystem.getInstance().getWrapper().execute("filelog -t", file);
+        Proc revisionProc = PerforceVersioningSystem.getInstance().getWrapper().execute(file, "filelog", "-t");
         if (revisionProc == null || revisionProc.getExitValue() != 0) {
-            PerforceVersioningSystem.print(revisionProc.getErrors(), true);
+            PerforceVersioningSystem.print(true, revisionProc.getErrors());
             return Collections.emptyList();
         }
         return parseRevisions(revisionProc.getOutput());
@@ -112,11 +112,11 @@ public class DiffAction extends AbstractSingleNodeAction {
     }
 
     private StreamSource createRemoteStreamSource(File file, String name, String mime) {
-        Proc printProc = PerforceVersioningSystem.getInstance().getWrapper().execute("print", file);
+        Proc printProc = PerforceVersioningSystem.getInstance().getWrapper().execute(file, "print");
         if (printProc == null || printProc.getExitValue() != 0) {
             return StreamSource.createSource(name, name, mime, new StringReader(printProc.getErrors()));
         }
-        String output = PerforceVersioningSystem.getInstance().getWrapper().execute("print", file).getOutput();
+        String output = PerforceVersioningSystem.getInstance().getWrapper().execute(file, "print").getOutput();
         int lineEnd = output.indexOf('\n');
         String content;
         String title;

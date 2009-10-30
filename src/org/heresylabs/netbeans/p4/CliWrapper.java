@@ -20,6 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to wrap p4 cli into Proc object, with full output and error streams inside.
@@ -37,41 +39,48 @@ public class CliWrapper {
      * @return Proc with output and error streams of p4 execution,
      * or null if there was no connection or some exception happened.
      */
-    public Proc execute(String command, File file) {
+    public Proc execute(File file, String... commandArgs) {
         if (file == null || !file.exists()) {
             return null;
         }
         Connection connection = PerforceVersioningSystem.getInstance().getConnectionForFile(file);
         if (connection == null) {
             // TODO better open connection configuration dialog here
-            PerforceVersioningSystem.print("Connection is empty", true);
+            PerforceVersioningSystem.print(true, "Connection is empty");
             return null;
         }
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("p4");
+        List<String> args = new ArrayList<String>();
+        args.add("p4");
         String user = connection.getUser();
         if (user != null && user.length() > 0) {
-            sb.append(" -u ").append(connection.getUser());
+            args.add("-u");
+            args.add(connection.getUser());
         }
         String client = connection.getClient();
         if (client != null && client.length() > 0) {
-            sb.append(" -c ").append(connection.getClient());
+            args.add("-c");
+            args.add(connection.getClient());
         }
         String server = connection.getServer();
         if (server != null && server.length() > 0) {
-            sb.append(" -p ").append(connection.getServer());
+            args.add("-p");
+            args.add(connection.getServer());
         }
         String password = connection.getPassword();
         if (password != null && password.length() > 0) {
-            sb.append(" -P ").append(connection.getPassword());
+            args.add("-P");
+            args.add(connection.getPassword());
         }
-        sb.append(' ').append(command).append(' ');
-        sb.append(file.getName());
+        for (String argv : commandArgs) {
+            args.add(argv);
+        }
+        String fileParam = file.getName();
         if (file.isDirectory()) {
-            sb.append("/...");
+            fileParam.concat("/...");
         }
-        return procExecute(sb.toString(), file.getParentFile());
+        args.add(fileParam);
+        return procExecute(args.toArray(new String[args.size()]), file.getParentFile());
     }
 
     /**
@@ -80,10 +89,10 @@ public class CliWrapper {
      * @param dir working folder of process
      * @return Proc with execution outputs or null if exception thrown
      */
-    private Proc procExecute(String command, File dir) {
+    private Proc procExecute(String[] commandArgs, File dir) {
         try {
-            PerforceVersioningSystem.print(command, false);
-            Process p = Runtime.getRuntime().exec(command, null, dir);
+            PerforceVersioningSystem.print(false, commandArgs);
+            Process p = Runtime.getRuntime().exec(commandArgs, null, dir);
             String output = readStreamContent(p.getInputStream());
             String error = readStreamContent(p.getErrorStream());
             int exitValue = p.waitFor();
