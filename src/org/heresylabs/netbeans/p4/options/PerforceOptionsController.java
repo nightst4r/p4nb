@@ -143,6 +143,14 @@ public class PerforceOptionsController extends OptionsPanelController implements
             }
 
         });
+        JButton dupeButton = new JButton("Duplicate");
+        dupeButton.addActionListener(new ActionListener() {
+
+            public void actionPerformed(ActionEvent e) {
+                dupeConnectionAction();
+            }
+
+        });
         JButton removeButton = new JButton("Remove");
         removeButton.addActionListener(new ActionListener() {
 
@@ -168,8 +176,9 @@ public class PerforceOptionsController extends OptionsPanelController implements
 
         });
 
-        JPanel gridPanel = new JPanel(new GridLayout(4, 1, 0, 6));
+        JPanel gridPanel = new JPanel(new GridLayout(5, 1, 0, 6));
         gridPanel.add(addButton);
+        gridPanel.add(dupeButton);
         gridPanel.add(removeButton);
         gridPanel.add(upButton);
         gridPanel.add(downButton);
@@ -213,6 +222,25 @@ public class PerforceOptionsController extends OptionsPanelController implements
         connections.add(c);
         listModel.fireAdded(index);
         connectionsList.setSelectedIndex(index);
+    }
+
+    private void dupeConnectionAction() {
+        int index = connectionsList.getSelectedIndex();
+        if (index >= 0) {
+            Connection oldC = connections.get(index);
+
+            Connection c = new Connection();
+            c.setWorkspacePath(oldC.getWorkspacePath());
+            c.setServer(oldC.getServer());
+            c.setClient(oldC.getClient());
+            c.setUser(oldC.getUser());
+            c.setPassword(oldC.getPassword());
+
+            int nIndex = connections.size();
+            connections.add(c);
+            listModel.fireAdded(nIndex);
+            connectionsList.setSelectedIndex(nIndex);
+        }
     }
 
     private void removeConnectionAction() {
