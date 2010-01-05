@@ -364,7 +364,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
      * @param files files to refresh
      */
     public void refresh(Set<File> files) {
-        fileStatusProvider.refreshAsync(files.toArray(new File[files.size()]));
+        if ( files != null && fileStatusProvider != null) {
+            fileStatusProvider.refreshAsync(files.toArray(new File[files.size()]));
+        }
     }
 
     /**
@@ -372,7 +374,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
      * @param file file to refresh.
      */
     public void refresh(File file) {
-        fileStatusProvider.refreshAsync(file);
+        if ( file != null && fileStatusProvider != null) {
+            fileStatusProvider.refreshAsync(file);
+        }
     }
 
     /**
@@ -382,7 +386,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
      * @return {@code UNKNOWN} if status was not found in cache, valid status otherwise.
      */
     public Status getFileStatus(File file) {
-        return fileStatusProvider.getFileStatus(file);
+        if ( file != null && fileStatusProvider != null) {
+            return fileStatusProvider.getFileStatus(file);
+        }
+        return Status.UNKNOWN;
     }
 
     // </editor-fold>
@@ -469,8 +476,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
      * @see #fireStatusChanged(java.util.Set)
      */
     public void fireFilesRefreshed(Set<File> files) {
-        fireStatusChanged(files);
-        //fireAnnotationsChanged(f);
+        if ( files != null ) {
+            fireStatusChanged(files);
+            //fireAnnotationsChanged(f);
+        }
     }
     // </editor-fold>
 
