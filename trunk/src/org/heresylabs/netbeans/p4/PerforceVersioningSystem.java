@@ -705,7 +705,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
              * cf. clearcase/src/org/netbeans/modules/clearcase/ClearcaseInterceptor.java that
              * simply returns true as well.
              */
-            return true;
+            return super.isMutable(file);   //Without this line, editing becomes possible and files
+                                            //enter a bad state, its very confusing.
+                                            //Ideally, this should be a preference, perhaps on the "intercept edit"?
         }
 
         @Override
