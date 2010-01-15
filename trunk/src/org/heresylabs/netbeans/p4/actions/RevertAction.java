@@ -36,17 +36,16 @@ public class RevertAction extends AbstractAction {
     @Override
     protected void performAction(Node[] activatedNodes) {
         PerforceVersioningSystem.saveNodes(activatedNodes);
-        File file = VCSContext.forNodes(activatedNodes).getRootFiles().iterator().next();
-        execute("revert", file);
+        for (File file : VCSContext.forNodes(activatedNodes).getRootFiles()){
+            execute("revert", file);
+        }
     }
 
     @Override
     protected boolean enable(Node[] activatedNodes) {
         // TODO same method exists in AbstractSingleNodeAction
         Set<File> files = VCSContext.forNodes(activatedNodes).getRootFiles();
-        if (files.size() != 1) {
-            return false;
-        }
+        
         File file = files.iterator().next();
         if (file.isDirectory()) {
             return false;

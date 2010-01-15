@@ -404,6 +404,10 @@ public class PerforceVersioningSystem extends VersioningSystem {
             String suffix;
             String nameColor = perforcePreferences.getColorBase();
 
+            if ( status == null ) {
+                return name;
+            }
+
             if (status.isLocal()) {
                 suffix = "Local Only";
                 nameColor = perforcePreferences.getColorLocal();
@@ -722,6 +726,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 return;
             }
             Status status = fileStatusProvider.getFileStatusForce(file);
+            if ( status == null ) {
+                return;
+            }
             if (status.isLocal()) {
                 logWarning(this, file.getName() + " is not revisioned. Should not be deleted by p4nb");
                 return;
@@ -752,6 +759,9 @@ public class PerforceVersioningSystem extends VersioningSystem {
                 return;
             }
             Status status = fileStatusProvider.getFileStatusForce(from);
+            if ( status == null ) {
+                return;
+            }
             if (status.isLocal()) {
                 logWarning(this, from.getName() + " is not revisioned. Should not be deleted by p4nb");
                 return;

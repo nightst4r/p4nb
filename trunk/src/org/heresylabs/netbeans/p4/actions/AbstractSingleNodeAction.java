@@ -40,18 +40,20 @@ public abstract class AbstractSingleNodeAction extends AbstractAction {
     @Override
     protected final void performAction(Node[] activatedNodes) {
         PerforceVersioningSystem.saveNodes(activatedNodes);
-        performAction(VCSContext.forNodes(activatedNodes).getRootFiles().iterator().next());
+        for (File file : VCSContext.forNodes(activatedNodes).getRootFiles()){
+            performAction(file);
+        }
     }
 
     @Override
     protected final boolean enable(Node[] activatedNodes) {
         Set<File> files = VCSContext.forNodes(activatedNodes).getRootFiles();
         if (files.size() != 1) {
-            return false;
+            //return false;
         }
         File file = files.iterator().next();
         if (file.isDirectory()) {
-            return false;
+            //return false;
         }
         return statusEnabled(PerforceVersioningSystem.getInstance().getFileStatus(file));
     }
